@@ -50,3 +50,6 @@ export async function withTransaction<T>(fn: (conn: mysql.PoolConnection) => Pro
     conn.release();
   }
 }
+
+// Add default export for compatibility
+export default getConnection;
