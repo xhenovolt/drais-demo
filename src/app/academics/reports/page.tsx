@@ -6,25 +6,120 @@ import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import * as XLSX from 'xlsx';
 
+// Type definitions
+interface Student {
+  student_id: number;
+  photo?: string | null;
+  admission_no: string;
+  first_name: string;
+  last_name: string;
+  class_name: string;
+  gender?: string;
+  stream_name?: string;
+  results: Result[];
+  totalMarks?: number;
+  averageMarks?: number;
+  subjectCount?: number;
+  position?: number;
+  totalInClass?: number;
+  class_teacher_comment?: string;
+  dos_comment?: string;
+  headteacher_comment?: string;
+}
+
+interface Result {
+  student_id: number;
+  subject_id: number;
+  subject_name: string;
+  teacher_name?: string;
+  score: number;
+  result_type_name?: string;
+  results_type?: string;
+  term?: string;
+  term_name?: string;
+  class_name: string;
+  photo_url?: string;
+  admission_no: string;
+  first_name: string;
+  last_name: string;
+  gender?: string;
+  stream_name?: string;
+  subject_type?: string;
+  mid_term_score?: number;
+  end_term_score?: number;
+  teacher_initials?: string;
+  class_id?: number;
+}
+
+interface ClassGroup {
+  className: string;
+  students: Student[];
+}
+
+interface GroupedResult {
+  subject_name: string;
+  teacher_name?: string;
+  midTermScore: number | null;
+  endTermScore: number | null;
+  regularScore: number | null;
+}
+
+interface Filters {
+  term: string;
+  resultType: string;
+  classId: string;
+  student: string;
+}
+
+interface TeacherInitialsContextType {
+  teacherInitials: Record<string, string>;
+  handleInitialsChange: (classId: string, subjectId: string, newInitials: string) => void;
+}
+
+interface CustomizationRef {
+  current: Record<string, unknown>;
+}
+
+interface SchoolInfo {
+  name: string;
+  address: string;
+  po_box: string;
+  logo_url: string;
+  contact: string;
+  center_no: string;
+  registration_no: string;
+  arabic_name: string;
+  arabic_address: string;
+  arabic_contact: string;
+  arabic_center_no: string;
+  arabic_registration_no: string;
+}
+
+interface ApiResponse {
+  students?: Student[];
+  results?: Result[];
+  data?: Result[];
+}
+
 // Context for syncing teacher initials
-const TeacherInitialsContext = createContext<any>(null);
+const TeacherInitialsContext = createContext<TeacherInitialsContextType | null>(null);
 
 // Add a PHP API base like in ResultTypesManager to avoid hitting a non-existent Next.js API route
 const API_BASE = process.env.NEXT_PUBLIC_PHP_API_BASE || 'http://localhost/drais/api';
 
 const ReportsPage = () => {
-  const [allStudents, setAllStudents] = useState<any[]>([]);
-  const [allResults, setAllResults] = useState<any[]>([]);
-  const [filters, setFilters] = useState({ term: '', resultType: '', classId: '', student: '' });
+  const [allStudents, setAllStudents] = useState<Student[]>([]);
+  const [allResults, setAllResults] = useState<Result[]>([]);
+  const [filters, setFilters] = useState<Filters>({ term: '', resultType: '', classId: '', student: '' });
   const [loading, setLoading] = useState(false);
   const [showCustomization, setShowCustomization] = useState(false);
   const [customTab, setCustomTab] = useState('school');
   const [teacherInitials, setTeacherInitials] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
-  const customizationRef = useRef<any>({});
+  const customizationRef = useRef<CustomizationRef>({ current: {} });
 
   // School info (static for all reports)
-  const schoolInfo = {
+  const schoolInfo: SchoolInfo = {
     name: 'ALBAYAN QURAN MEMORIZATION CENTER & PRIMARY SCHOOL',
     address: 'BUGUMBA, IGANGA MUNICPALITY',
     po_box: 'P.O. BOX 662, IGANGA MUNICIPALITY',
@@ -40,7 +135,7 @@ const ReportsPage = () => {
   };
 
   // Add Arabic-Indic digits converter (strip dash characters before mapping)
-  const toArabicDigits = (input?: string | number | null) => {
+  const toArabicDigits = (input?: string | number | null): string => {
     if (input === null || input === undefined) return '';
     const s = String(input);
     // Remove common dash-like characters before converting digits
@@ -57,12 +152,12 @@ const ReportsPage = () => {
     // Use new DB (Next.js API)
     fetch(`/api/reports/list`)
       .then(async r => {
-        const data = await r.json().catch(() => ({}));
+        const data: ApiResponse = await r.json().catch(() => ({}));
         return data;
       })
-      .then((data:any) => {
+      .then((data: ApiResponse) => {
         const students = data?.students || [];
-        const results = data?.results || data?.data || (Array.isArray(data) ? data : []);
+        const results = data?.results || data?.data || (Array.isArray(data) ? data as Result[] : []);
         setAllStudents(students);
         setAllResults(results);
       })
@@ -74,8 +169,8 @@ const ReportsPage = () => {
   }, []);
 
   // Enhanced class groups with data validation and error checking
-  const classGroups = useMemo(() => {
-    const groups: Record<string, { className: string, students: any[] }> = {};
+  const classGroups = useMemo((): Record<string, ClassGroup> => {
+    const groups: Record<string, ClassGroup> = {};
     
     // Filter out invalid results and remove duplicates
     const validResults = allResults.filter((r, index, arr) => {
@@ -85,7 +180,7 @@ const ReportsPage = () => {
       }
       
       // Ensure score is a valid number
-      const score = parseFloat(r.score);
+      const score = parseFloat(String(r.score));
       if (isNaN(score)) return false;
       
       // Remove duplicates based on unique combination
@@ -107,10 +202,6 @@ const ReportsPage = () => {
       if (!student) {
         // Improved photo URL handling for Next.js Image component
         const photoUrl = r.photo_url;
-          // ? (r.photo_url.startsWith('http') 
-          //   ? r.photo_url 
-          //   : `${API_BASE}${r.photo_url}`.replace(/^http:\/\/localhost/, 'http://localhost'))
-          // : '/schoollogo.png';
 
         student = {
           student_id: r.student_id,
@@ -130,15 +221,15 @@ const ReportsPage = () => {
     
     // Sort students within each class by name
     Object.values(groups).forEach(g => {
-      g.students.sort((a, b) => (a.last_name||'').localeCompare(b.last_name||''));
+      g.students.sort((a, b) => (a.last_name || '').localeCompare(b.last_name || ''));
     });
     
     return groups;
   }, [allResults]);
 
   // Enhanced filtering logic with better validation
-  const filteredClassGroups = useMemo(() => {
-    let groups = JSON.parse(JSON.stringify(classGroups)); // Deep clone to avoid mutations
+  const filteredClassGroups = useMemo((): Record<string, ClassGroup> => {
+    let groups = JSON.parse(JSON.stringify(classGroups)) as Record<string, ClassGroup>; // Deep clone to avoid mutations
     
     if (filters.classId) {
       groups = Object.fromEntries(
@@ -156,9 +247,9 @@ const ReportsPage = () => {
         
         // Term filter - only apply if term data exists
         if (filters.term) {
-          const hasTermData = s.results.some((r: any) => r.term || r.term_name);
+          const hasTermData = s.results.some((r: Result) => r.term || r.term_name);
           if (hasTermData) {
-            const matchesTerm = s.results.some((r: any) =>
+            const matchesTerm = s.results.some((r: Result) =>
               String(r.term || r.term_name || '').toLowerCase() === filters.term.toLowerCase()
             );
             if (!matchesTerm) return false;
@@ -167,7 +258,7 @@ const ReportsPage = () => {
         
         // Result type filter
         if (filters.resultType) {
-          const matchesResultType = s.results.some((r: any) =>
+          const matchesResultType = s.results.some((r: Result) =>
             String(r.result_type_name || r.results_type || '').toLowerCase() === filters.resultType.toLowerCase()
           );
           if (!matchesResultType) return false;
@@ -191,7 +282,7 @@ const ReportsPage = () => {
   }, [classGroups, filters]);
 
   // Helper: check if a single result row matches current filters
-  const matchesFilters = (r: any) => {
+  const matchesFilters = (r: Result): boolean => {
     if (filters.resultType) {
       const rt = String(r.result_type_name || r.results_type || '').toLowerCase();
       if (rt !== filters.resultType.toLowerCase()) return false;
@@ -204,27 +295,27 @@ const ReportsPage = () => {
   };
 
   // Enhanced class-based positioning with proper per-class ranking
-  const classGroupsWithPositions = useMemo(() => {
-    const groups: Record<string, { className: string; students: any[] }> = JSON.parse(JSON.stringify(filteredClassGroups));
+  const classGroupsWithPositions = useMemo((): Record<string, ClassGroup> => {
+    const groups: Record<string, ClassGroup> = JSON.parse(JSON.stringify(filteredClassGroups));
 
     // Process each class independently for proper class-based positioning
-    Object.values(groups).forEach((classGroup: any) => {
+    Object.values(groups).forEach((classGroup: ClassGroup) => {
       // Filter results per student based on current filters
-      classGroup.students.forEach((student: any) => {
-        student.results = (student.results || []).filter((r: any) => {
+      classGroup.students.forEach((student: Student) => {
+        student.results = (student.results || []).filter((r: Result) => {
           // Validate result data
-          if (!r.score || isNaN(parseFloat(r.score))) return false;
+          if (!r.score || isNaN(parseFloat(String(r.score)))) return false;
           return matchesFilters(r);
         });
       });
        
       // Remove students with no valid results after filtering
-      classGroup.students = classGroup.students.filter((s: any) => s.results && s.results.length > 0);
+      classGroup.students = classGroup.students.filter((s: Student) => s.results && s.results.length > 0);
       
       // Calculate total marks for each student in this class
-      classGroup.students.forEach((student: any) => {
+      classGroup.students.forEach((student: Student) => {
         const validScores = (student.results || [])
-          .map((r: any) => parseFloat(r.score || 0))
+          .map((r: Result) => parseFloat(String(r.score || 0)))
           .filter(score => !isNaN(score) && score >= 0);
         
         student.totalMarks = validScores.reduce((sum, score) => sum + score, 0);
@@ -233,7 +324,7 @@ const ReportsPage = () => {
       });
       
       // Sort students by total marks within this class (highest first)
-      classGroup.students.sort((a: any, b: any) => {
+      classGroup.students.sort((a: Student, b: Student) => {
         const totalA = a.totalMarks || 0;
         const totalB = b.totalMarks || 0;
         if (totalB !== totalA) return totalB - totalA;
@@ -248,7 +339,7 @@ const ReportsPage = () => {
       });
       
       // Assign positions within this class only
-      classGroup.students.forEach((student: any, index: number) => {
+      classGroup.students.forEach((student: Student, index: number) => {
         student.position = index + 1;
         student.totalInClass = classGroup.students.length; // Class-specific total
       });
@@ -323,12 +414,12 @@ const ReportsPage = () => {
   }
 
   // Enhanced helper to group results by subject with better error handling
-  function groupResultsBySubject(results: any[]) {
-    const grouped: Record<string, any> = {};
+  function groupResultsBySubject(results: Result[]): GroupedResult[] {
+    const grouped: Record<string, GroupedResult> = {};
     
     results.forEach((result) => {
       // Use subject_id and subject_name as fallback for grouping
-      const subjectKey = result.subject_id || result.subject_name;
+      const subjectKey = String(result.subject_id || result.subject_name);
       if (!subjectKey) return; // Skip invalid results
       
       if (!grouped[subjectKey]) {
@@ -343,12 +434,12 @@ const ReportsPage = () => {
       
       const resultType = (result.result_type_name || result.results_type || '').toLowerCase();
       if (resultType.includes('mid')) {
-        grouped[subjectKey].midTermScore = parseFloat(result.score || 0);
+        grouped[subjectKey].midTermScore = parseFloat(String(result.score || 0));
       } else if (resultType.includes('end')) {
-        grouped[subjectKey].endTermScore = parseFloat(result.score || 0);
+        grouped[subjectKey].endTermScore = parseFloat(String(result.score || 0));
       } else {
         // For other result types, use as regular score
-        grouped[subjectKey].regularScore = parseFloat(result.score || 0);
+        grouped[subjectKey].regularScore = parseFloat(String(result.score || 0));
       }
     });
     
@@ -565,7 +656,7 @@ const ReportsPage = () => {
         Comments/Remarks
         <div style={{ marginTop: 2 }}>
           <div style={{ marginBottom: 10, width: '100%' }}>
-            <span style={styles.commentRibbon}>Class Teacher's Comment:</span>
+            <span style={styles.commentRibbon}>Class Teacher&apos;s Comment:</span>
             <span style={styles.commentText}>{student.class_teacher_comment || divisionComments.classTeacher}</span>
           </div>
           <div style={{ marginBottom: 10 }}>
@@ -573,7 +664,7 @@ const ReportsPage = () => {
             <span style={styles.commentText}>{student.dos_comment || divisionComments.dos}</span>
           </div>
           <div style={{ marginBottom: 10 }}>
-            <span style={styles.commentRibbon}>Headteacher's Comment:</span>
+            <span style={styles.commentRibbon}>Headteacher&apos;s Comment:</span>
             <span style={styles.commentText}>{student.headteacher_comment || divisionComments.headteacher}</span>
           </div>
           <div style={{ textDecoration: 'underline dashed', marginTop: 12 }}>18-AUG-2025</div>
@@ -629,7 +720,7 @@ const ReportsPage = () => {
   }
 
   // Save initials to backend
-  const saveInitialsToBackend = async (classId: string, subjectId: string, newInitials: string) => {
+  const saveInitialsToBackend = async (classId: string, subjectId: string, newInitials: string): Promise<void> => {
     setSaving(true);
     try {
       await fetch('/api/teacher-initials', {
@@ -645,8 +736,8 @@ const ReportsPage = () => {
   };
 
   // Export reports to PDF
-  const exportToPDF = async () => {
-    const reportArea = document.querySelector('.p-4'); // Ensure this targets the correct container
+  const exportToPDF = async (): Promise<void> => {
+    const reportArea = document.querySelector('.p-4') as HTMLElement; // Ensure this targets the correct container
     if (!reportArea) {
       window.alert('Report area not found!');
       return;
@@ -679,13 +770,13 @@ const ReportsPage = () => {
   };
 
   // Export reports to Excel
-  const exportToExcel = () => {
+  const exportToExcel = (): void => {
     const workbook = XLSX.utils.book_new();
-    Object.values(classGroupsWithPositions).forEach((classGroup: any) => {
-      const worksheetData = [
+    Object.values(classGroupsWithPositions).forEach((classGroup: ClassGroup) => {
+      const worksheetData: (string | number)[][] = [
         ['Student Name', 'Subject', 'Teacher Initials', 'Score'],
-        ...classGroup.students.flatMap((student: any) =>
-          student.results.map((result: any) => [
+        ...classGroup.students.flatMap((student: Student) =>
+          student.results.map((result: Result) => [
             `${student.first_name} ${student.last_name}`,
             result.subject_name,
             teacherInitials[`${result.class_id}-${result.subject_id}`] || result.teacher_initials || 'N/A',
@@ -700,7 +791,7 @@ const ReportsPage = () => {
   };
 
   // Handle inline editing of teacher initials
-  const handleInitialsChange = (classId: string, subjectId: string, newInitials: string) => {
+  const handleInitialsChange = (classId: string, subjectId: string, newInitials: string): void => {
     setTeacherInitials((prev) => ({
       ...prev,
       [`${classId}-${subjectId}`]: newInitials,
@@ -1050,9 +1141,9 @@ const ReportsPage = () => {
                 )}
                 {customTab==='comment' && (
                   <div className="grid grid-cols-2 gap-4 mb-4">
-                    {/* Class Teacher's Comments for all divisions */}
+                    {/* Class Teacher&apos;s Comments for all divisions */}
                     <div>
-                      <label className="block font-semibold mb-1">Class Teacher's Comment (Division 1)</label>
+                      <label className="block font-semibold mb-1">Class Teacher&apos;s Comment (Division 1)</label>
                       <select className="w-full border rounded px-2 py-1" name="class_teacher_comment_div1">
                         <option>Brilliant!! all my hopes are in you.</option>
                         <option>Outstanding Results, keep focused.</option>
@@ -1062,7 +1153,7 @@ const ReportsPage = () => {
                       </select>
                     </div>
                     <div>
-                      <label className="block font-semibold mb-1">Class Teacher's Comment (Division 2)</label>
+                      <label className="block font-semibold mb-1">Class Teacher&apos;s Comment (Division 2)</label>
                       <select className="w-full border rounded px-2 py-1" name="class_teacher_comment_div2">
                         <option>Promising results, keep more focused.</option>
                         <option>work harder for a first grade.</option>
@@ -1072,7 +1163,7 @@ const ReportsPage = () => {
                       </select>
                     </div>
                     <div>
-                      <label className="block font-semibold mb-1">Class Teacher's Comment (Division 3)</label>
+                      <label className="block font-semibold mb-1">Class Teacher&apos;s Comment (Division 3)</label>
                       <select className="w-full border rounded px-2 py-1" name="class_teacher_comment_div3">
                         <option>Improve and make it to the next grade.</option>
                         <option>Create more time for revision.</option>
@@ -1082,7 +1173,7 @@ const ReportsPage = () => {
                       </select>
                     </div>
                     <div>
-                      <label className="block font-semibold mb-1">Class Teacher's Comment (Division 4)</label>
+                      <label className="block font-semibold mb-1">Class Teacher&apos;s Comment (Division 4)</label>
                       <select className="w-full border rounded px-2 py-1" name="class_teacher_comment_div4">
                         <option>You have to be very active in the discussion groups.</option>
                         <option>concentrate more on your books.</option>
@@ -1092,7 +1183,7 @@ const ReportsPage = () => {
                       </select>
                     </div>
                     <div>
-                      <label className="block font-semibold mb-1">Class Teacher's Comment (Division U)</label>
+                      <label className="block font-semibold mb-1">Class Teacher&apos;s Comment (Division U)</label>
                       <select className="w-full border rounded px-2 py-1" name="class_teacher_comment_divU">
                         <option>More concentration is needed from you in order to perform better.</option>
                         <option>Learn to always consult your friends and teachers.</option>
@@ -1101,9 +1192,9 @@ const ReportsPage = () => {
                         <option>Work very hard please, you can make it to the next grade.</option>
                       </select>
                     </div>
-                    {/* Headteacher's Comments for all divisions */}
+                    {/* Headteacher&apos;s Comments for all divisions */}
                     <div>
-                      <label className="block font-semibold mb-1">Headteacher's Comment (Division 1)</label>
+                      <label className="block font-semibold mb-1">Headteacher&apos;s Comment (Division 1)</label>
                       <select className="w-full border rounded px-2 py-1" name="headteacher_comment_div1">
                         <option>Great work done, keep it up.</option>
                         <option>All our hopes are in you, dont relax.</option>
@@ -1112,7 +1203,7 @@ const ReportsPage = () => {
                       </select>
                     </div>
                     <div>
-                      <label className="block font-semibold mb-1">Headteacher's Comment (Division 2)</label>
+                      <label className="block font-semibold mb-1">Headteacher&apos;s Comment (Division 2)</label>
                       <select className="w-full border rounded px-2 py-1" name="headteacher_comment_div2">
                         <option>You are a firstgrade material, keep more focused.</option>
                         <option>Quite remarkable performance, keep more focused.</option>
@@ -1122,7 +1213,7 @@ const ReportsPage = () => {
                       </select>
                     </div>
                     <div>
-                      <label className="block font-semibold mb-1">Headteacher's Comment (Division 3)</label>
+                      <label className="block font-semibold mb-1">Headteacher&apos;s Comment (Division 3)</label>
                       <select className="w-full border rounded px-2 py-1" name="headteacher_comment_div3">
                         <option>You need to be active in discussions.</option>
                         <option>You are capable of doing better than doing this.</option>
@@ -1132,7 +1223,7 @@ const ReportsPage = () => {
                       </select>
                     </div>
                     <div>
-                      <label className="block font-semibold mb-1">Headteacher's Comment (Division 4)</label>
+                      <label className="block font-semibold mb-1">Headteacher&apos;s Comment (Division 4)</label>
                       <select className="w-full border rounded px-2 py-1" name="headteacher_comment_div4">
                         <option>You are capable of Improving, just keep focused.</option>
                         <option>Create more time for academic work.</option>
@@ -1142,7 +1233,7 @@ const ReportsPage = () => {
                       </select>
                     </div>
                     <div>
-                      <label className="block font-semibold mb-1">Headteacher's Comment (Division U)</label>
+                      <label className="block font-semibold mb-1">Headteacher&apos;s Comment (Division U)</label>
                       <select className="w-full border rounded px-2 py-1" name="headteacher_comment_divU">
                         <option>concentrate more on academics for a better performance.</option>
                         <option>Cultivate a positive attitude towards academics.</option>
