@@ -188,7 +188,7 @@ export class NotificationMiddleware {
     const connection = await getConnection();
     try {
       let query = 'UPDATE notifications SET read_at = NOW() WHERE id = ?';
-      let params = [notificationId];
+      const params = [notificationId];
       
       if (userId) {
         query += ' AND user_id = ?';
@@ -228,7 +228,7 @@ export class NotificationMiddleware {
     const connection = await getConnection();
     try {
       let query = 'DELETE FROM notifications WHERE id = ?';
-      let params = [notificationId];
+      const params = [notificationId];
       
       if (userId) {
         query += ' AND user_id = ?';

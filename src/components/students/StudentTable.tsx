@@ -852,7 +852,7 @@ export const StudentTable: React.FC = () => {
       doc.text(`Total Students: ${total}`, 20, 35);
       
       // Add filters info if any
-      let filterInfo = [];
+      const filterInfo = [];
       if (selectedClass) {
         const className = classOptions.find((cls: any) => cls.id === parseInt(selectedClass))?.name;
         filterInfo.push(`Class: ${className}`);

@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
         AND r.subject_id = ?
         AND r.result_type_id = ?`;
     
-    let params = [subjectId, resultTypeId];
+    const params = [subjectId, resultTypeId];
     
     // Add term condition to the JOIN if termId is provided
     if (termId) {

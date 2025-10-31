@@ -185,7 +185,7 @@ export async function GET(req: NextRequest) {
     `;
 
     const countParams: any[] = [schoolId];
-    let countConditions: string[] = [];
+    const countConditions: string[] = [];
 
     if (groupId && groupId !== 'all') {
       countConditions.push('tg.id = ?');

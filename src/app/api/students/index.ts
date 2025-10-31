@@ -14,7 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const pageSize = Math.max(1, Math.min(100, parseInt(size as string)));
   const offset = (pageNum - 1) * pageSize;
   let where = 'WHERE s.deleted_at IS NULL';
-  let params: any[] = [];
+  const params: any[] = [];
   if (q) {
     where += ' AND (p.first_name LIKE ? OR p.last_name LIKE ? OR s.admission_no LIKE ?)';
     params.push(`%${q}%`, `%${q}%`, `%${q}%`);

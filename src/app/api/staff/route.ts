@@ -39,8 +39,8 @@ export async function GET(req: NextRequest) {
       console.log('Note: Some staff table columns may already exist');
     }
 
-    let whereConditions = ['s.school_id = ?'];
-    let queryParams = [schoolId];
+    const whereConditions = ['s.school_id = ?'];
+    const queryParams = [schoolId];
 
     if (search) {
       whereConditions.push('(p.first_name LIKE ? OR p.last_name LIKE ? OR s.staff_no LIKE ?)');

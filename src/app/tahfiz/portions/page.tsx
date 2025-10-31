@@ -113,7 +113,7 @@ function TahfizPortionsContent() {
 
   // Sort and filter learners
   const sortedLearners = React.useMemo(() => {
-    let filtered = [...learners];
+    const filtered = [...learners];
     
     // Apply sorting
     filtered.sort((a, b) => {

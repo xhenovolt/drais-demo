@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
       }
 
       // Get current academic year and term if not provided
-      let currentAcademicYear = academic_year_id;
+      const currentAcademicYear = academic_year_id;
       let currentTerm = term_id;
 
       // if (!currentAcademicYear) {

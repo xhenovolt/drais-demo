@@ -13,8 +13,8 @@ export async function GET(req: NextRequest) {
 
     connection = await getConnection();
 
-    let whereConditions = ['w.school_id = ? AND w.deleted_at IS NULL'];
-    let queryParams = [schoolId];
+    const whereConditions = ['w.school_id = ? AND w.deleted_at IS NULL'];
+    const queryParams = [schoolId];
 
     if (status) {
       whereConditions.push('w.status = ?');
