@@ -36,14 +36,7 @@ export async function DELETE(req: NextRequest) {
   await query('DELETE FROM tahfiz_plans WHERE id = ?', [id]);
   return NextResponse.json({ success: true });
 }
-      ...plan 
-    });
-  } catch (error) {
-    console.error('Create plan error:', error);
-    return NextResponse.json({ error: 'Failed to create plan' }, { status: 500 });
-  }
-}
-
+    
 export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession();

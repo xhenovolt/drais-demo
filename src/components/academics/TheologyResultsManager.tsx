@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   BookOpen, Plus, Search, Filter, Download, Upload, 
-  Users, GraduationCap, Star, Mosque, Sparkles,
+  Users, GraduationCap, Star, Moon, Sparkles,
   Eye, Edit, Trash2, MoreVertical, ChevronDown
 } from 'lucide-react';
 import useSWR from 'swr';
@@ -180,7 +180,7 @@ export default function TheologyResultsManager() {
       <div className="flex flex-col lg:flex-row gap-4 justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg">
-            <Mosque className="w-5 h-5 text-white" />
+            <Moon className="w-5 h-5 text-white" />
           </div>
           <div>
             <h3 className="text-lg font-bold text-slate-800 dark:text-white">

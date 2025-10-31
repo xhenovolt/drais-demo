@@ -1,4 +1,4 @@
-import { query, transaction } from './db';
+import { getConnection } from './db';
 
 interface StudentFee {
   student_id: number;
@@ -10,8 +10,35 @@ interface StudentFee {
   balance: number;
 }
 
+// Replace transaction calls with proper connection handling
+export async function withTransaction<T>(callback: (connection: any) => Promise<T>): Promise<T> {
+  const connection = await getConnection();
+  try {
+    await connection.beginTransaction();
+    const result = await callback(connection);
+    await connection.commit();
+    return result;
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    await connection.end();
+  }
+}
+
+// Replace query calls with direct connection usage
+export async function query(sql: string, params: any[] = []): Promise<any> {
+  const connection = await getConnection();
+  try {
+    const [rows] = await connection.execute(sql, params);
+    return rows;
+  } finally {
+    await connection.end();
+  }
+}
+
 export async function initializeFeesSystem(school_id: number) {
-  return await transaction(async (connection) => {
+  return await withTransaction(async (connection) => {
     // 1. Get all active students
     const students = await connection.query(`
       SELECT s.id as student_id, s.class_id, s.stream_id, 

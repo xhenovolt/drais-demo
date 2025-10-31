@@ -330,35 +330,3 @@ export default function EnrollmentAnalytics({ schoolId }: { schoolId: string }) 
     </div>
   );
 }
-                  transition={{ delay: index * 0.05 }}
-                  className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50"
-                >
-                  <td className="py-3 px-4 font-medium text-gray-900 dark:text-gray-100">
-                    {year.academic_year || 'N/A'}
-                  </td>
-                  <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
-                    {year.total_students}
-                  </td>
-                  <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
-                    {year.retained_students}
-                  </td>
-                  <td className="py-3 px-4">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      parseFloat(year.retention_rate || 0) >= 90 ? 
-                        'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 
-                      parseFloat(year.retention_rate || 0) >= 80 ?
-                        'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' :
-                        'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-                    }`}>
-                      {parseFloat(year.retention_rate || 0).toFixed(1)}%
-                    </span>
-                  </td>
-                </motion.tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </DashboardCard>
-    </div>
-  );
-}

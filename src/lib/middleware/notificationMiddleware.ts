@@ -154,6 +154,96 @@ export class NotificationMiddleware {
       if (connection) await connection.end();
     }
   }
+
+  static async createNotification(data: {
+    user_id?: number;
+    title: string;
+    message: string;
+    type?: string;
+    data?: any;
+  }) {
+    const connection = await getConnection();
+    try {
+      const [result] = await connection.execute(
+        `INSERT INTO notifications (user_id, title, message, type, data, created_at, updated_at) 
+         VALUES (?, ?, ?, ?, ?, NOW(), NOW())`,
+        [
+          data.user_id || null,
+          data.title,
+          data.message,
+          data.type || 'info',
+          data.data ? JSON.stringify(data.data) : null
+        ]
+      );
+      return { success: true, id: (result as any).insertId };
+    } catch (error) {
+      console.error('Failed to create notification:', error);
+      return { success: false, error };
+    } finally {
+      await connection.end();
+    }
+  }
+
+  static async markAsRead(notificationId: number, userId?: number) {
+    const connection = await getConnection();
+    try {
+      let query = 'UPDATE notifications SET read_at = NOW() WHERE id = ?';
+      let params = [notificationId];
+      
+      if (userId) {
+        query += ' AND user_id = ?';
+        params.push(userId);
+      }
+      
+      await connection.execute(query, params);
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error);
+      return { success: false, error };
+    } finally {
+      await connection.end();
+    }
+  }
+
+  static async getUserNotifications(userId: number, limit = 10, offset = 0) {
+    const connection = await getConnection();
+    try {
+      const [rows] = await connection.execute(
+        `SELECT * FROM notifications 
+         WHERE user_id = ? OR user_id IS NULL 
+         ORDER BY created_at DESC 
+         LIMIT ? OFFSET ?`,
+        [userId, limit, offset]
+      );
+      return { success: true, data: rows };
+    } catch (error) {
+      console.error('Failed to get user notifications:', error);
+      return { success: false, error };
+    } finally {
+      await connection.end();
+    }
+  }
+
+  static async deleteNotification(notificationId: number, userId?: number) {
+    const connection = await getConnection();
+    try {
+      let query = 'DELETE FROM notifications WHERE id = ?';
+      let params = [notificationId];
+      
+      if (userId) {
+        query += ' AND user_id = ?';
+        params.push(userId);
+      }
+      
+      await connection.execute(query, params);
+      return { success: true };
+    } catch (error) {
+      console.error('Failed to delete notification:', error);
+      return { success: false, error };
+    } finally {
+      await connection.end();
+    }
+  }
 }
 
 export default NotificationMiddleware;
