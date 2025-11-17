@@ -1,6 +1,6 @@
 'use server'
 
-import { db } from '@/lib/db';
+import { getConnection } from '@/lib/db';
 import { revalidatePath, revalidateTag } from 'next/cache';
 
 export async function updateScore(
@@ -9,19 +9,22 @@ export async function updateScore(
   grade?: string, 
   remarks?: string
 ) {
+  let connection;
   try {
+    connection = await getConnection();
+    
     // Fetch current record for audit
-    const current = await db.query(
+    const [current] = await connection.execute(
       'SELECT * FROM class_results WHERE id = ?', 
       [resultId]
-    );
+    ) as any[];
 
-    if (!current[0]) {
+    if (!current || current.length === 0) {
       throw new Error('Result not found');
     }
 
     // Update the record
-    await db.query(
+    await connection.execute(
       'UPDATE class_results SET score = ?, grade = ?, remarks = ?, updated_at = NOW() WHERE id = ?',
       [newScore, grade || current[0].grade, remarks || current[0].remarks, resultId]
     );
@@ -32,7 +35,7 @@ export async function updateScore(
       after: { ...current[0], score: newScore, grade, remarks }
     };
 
-    await db.query(
+    await connection.execute(
       'INSERT INTO audit_log (action, entity_type, entity_id, changes_json, created_at) VALUES (?, ?, ?, ?, NOW())',
       ['edit_result', 'class_result', resultId, JSON.stringify(changes)]
     );
@@ -45,5 +48,7 @@ export async function updateScore(
   } catch (error) {
     console.error('Server action error:', error);
     return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  } finally {
+    if (connection) await connection.end();
   }
 }
