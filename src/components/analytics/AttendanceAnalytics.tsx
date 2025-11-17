@@ -10,7 +10,8 @@ import {
   TrendingDown,
   AlertTriangle,
   BarChart3,
-  TrendingUp
+  TrendingUp,
+  Target
 } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ScatterChart, Scatter } from 'recharts';
 import DashboardCard from '@/components/dashboard/DashboardCard';
@@ -22,6 +23,11 @@ interface AttendanceData {
   staffAttendanceSummary: any[];
   dailyOverview: any[];
   attendancePerformanceCorrelation: any[];
+  classAttendanceTrends?: any[];
+  bestPerformingClass?: string;
+  worstPerformingClass?: string;
+  monthlyAverage?: number;
+  attendanceGoal?: number;
 }
 
 export default function AttendanceAnalytics({ schoolId, days = 30 }: { 
@@ -114,6 +120,18 @@ export default function AttendanceAnalytics({ schoolId, days = 30 }: {
        (data.dailyOverview[0].present / data.dailyOverview[0].total)) * 100
     : 0;
 
+  const getGoalProgress = () => {
+    return data.monthlyAverage && data.attendanceGoal 
+      ? (data.monthlyAverage / data.attendanceGoal) * 100 
+      : 0;
+  };
+
+  const getPerformanceColor = (rate: number) => {
+    if (rate >= 90) return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
+    if (rate >= 75) return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
+    return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
+  };
+
   return (
     <div className="space-y-6">
       {/* Overview Cards */}
@@ -145,7 +163,7 @@ export default function AttendanceAnalytics({ schoolId, days = 30 }: {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          delay={0.1}
+          transition={{ delay: 0.1 }}
           className="card p-6"
         >
           <div className="flex items-center justify-between">
@@ -171,7 +189,7 @@ export default function AttendanceAnalytics({ schoolId, days = 30 }: {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          delay={0.2}
+          transition={{ delay: 0.2 }}
           className="card p-6"
         >
           <div className="flex items-center justify-between">
@@ -193,7 +211,7 @@ export default function AttendanceAnalytics({ schoolId, days = 30 }: {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          delay={0.3}
+          transition={{ delay: 0.3 }}
           className="card p-6"
         >
           <div className="flex items-center justify-between">
@@ -220,7 +238,7 @@ export default function AttendanceAnalytics({ schoolId, days = 30 }: {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        delay={0.4}
+        transition={{ delay: 0.4 }}
         className="card"
       >
         <div className="p-6 border-b border-gray-200 dark:border-gray-600">
@@ -231,7 +249,7 @@ export default function AttendanceAnalytics({ schoolId, days = 30 }: {
         </div>
         <div className="p-6">
           <div className="space-y-4">
-            {data.classAttendanceTrends.map((classData, index) => (
+            {(data.classAttendanceTrends || []).map((classData: any, index: number) => (
               <div key={index} className="flex items-center justify-between p-4 rounded-lg bg-gray-50 dark:bg-slate-700/50">
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-2">
@@ -376,44 +394,13 @@ export default function AttendanceAnalytics({ schoolId, days = 30 }: {
           </div>
         </div>
       </motion.div>
-    </div>
-  );
-}
-        <div className="p-6">
-          <div className="space-y-4">
-            {data.studentAttendanceTrends.map((classData, index) => (
-              <div key={index} className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-medium text-gray-900 dark:text-white">
-                      {classData.class_name}
-                    </span>
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
-                      {classData.present}/{classData.total} ({(classData.attendance_rate * 100).toFixed(1)}%)
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                    <div
-                      className={`h-2 rounded-full ${
-                        classData.attendance_rate >= 0.9 ? 'bg-green-500' :
-                        classData.attendance_rate >= 0.75 ? 'bg-yellow-500' : 'bg-red-500'
-                      }`}
-                      style={{ width: `${classData.attendance_rate * 100}%` }}
-                    />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </motion.div>
 
       {/* Low Attendance Students */}
       {data.chronicAbsentees.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
+          transition={{ delay: 0.8 }}
           className="card"
         >
           <div className="p-6 border-b border-gray-200 dark:border-gray-600">
@@ -423,7 +410,7 @@ export default function AttendanceAnalytics({ schoolId, days = 30 }: {
             </h3>
           </div>
           <div className="divide-y divide-gray-200 dark:divide-gray-600">
-            {data.chronicAbsentees.map((student) => (
+            {data.chronicAbsentees.map((student: any) => (
               <div key={student.student_id} className="p-6 flex items-center justify-between">
                 <span className="font-medium text-gray-900 dark:text-white">
                   {student.student_name}
