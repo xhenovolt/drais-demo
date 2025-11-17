@@ -120,7 +120,7 @@ export const LearnerDetailsModal: React.FC<LearnerDetailsModalProps> = ({ open, 
 		}
 		// Attempt client-side compression (resize and convert to webp)
 		try {
-			// @ts-ignore
+			// @ts-expect-error - imageOrientation option exists in modern browsers
 			const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' }).catch(() => createImageBitmap(file));
 			const maxDim = 1600;
 			const sw = bitmap.width;
@@ -153,7 +153,7 @@ export const LearnerDetailsModal: React.FC<LearnerDetailsModalProps> = ({ open, 
 	const generateThumbnail = async (file: File): Promise<string | null> => {
 		try {
 			// create image bitmap to preserve orientation
-			// @ts-ignore
+			// @ts-expect-error - imageOrientation option exists in modern browsers
 			const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' }).catch(() => createImageBitmap(file));
 			const target = 200;
 			const sw = bitmap.width;

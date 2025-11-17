@@ -1,5 +1,6 @@
 "use client";
 import React from 'react';
+import Link from 'next/link';
 import useSWR from 'swr';
 import { TermProgress } from './TermProgress';
 import { TermReports } from './TermReports';
@@ -19,7 +20,7 @@ export default function TermDetail({ id }: { id:string }){
           <h1 className="text-2xl font-semibold text-indigo-700 dark:text-pink-300">{data.name}</h1>
           <p className="text-xs text-gray-500">{t('terms.dates','Dates')}: {data.start_date||'-'} → {data.end_date||'-'}</p>
         </div>
-        <a href="/terms/list" className="text-xs text-[var(--color-primary)] font-medium">{t('common.back_to_list','Back to list')}</a>
+        <Link href="/terms/list" className="text-xs text-[var(--color-primary)] font-medium">{t('common.back_to_list','Back to list')}</Link>
       </div>
       <div className="grid md:grid-cols-3 gap-6 text-sm">
         <div className="p-5 rounded-xl border bg-white/60 dark:bg-slate-900/60 backdrop-blur border-white/30 dark:border-white/10 md:col-span-1">

@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getConnection } from "@/lib/db";
-const AfricasTalking = require("africastalking")({
-  apiKey: "atsk_3baf21e161cca165c4f5ccb67bc38f5a50a192e3208fafc3b575014f35793d9a1994a774", // Replace with your Africa's Talking API key
-  username: "xhenovolt", // Replace with your Africa's Talking username
+// @ts-expect-error - AfricasTalking doesn't have proper TypeScript definitions
+import AfricasTalking from "africastalking";
+
+const africasTalkingClient = AfricasTalking({
+  apiKey: "atsk_3baf21e161cca165c4f5ccb67bc38f5a50a192e3208fafc3b575014f35793d9a1994a774",
+  username: "xhenovolt",
 });
 
-const sms = AfricasTalking.SMS;
+const sms = africasTalkingClient.SMS;
 
 async function formatPhoneNumber(contact: string): Promise<string> {
   if (/^0\d{9}$/.test(contact)) {

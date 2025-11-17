@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getConnection } from '@/lib/db';
-const AfricasTalking = require('africastalking')({
-  apiKey: 'atsk_3baf21e161cca165c4f5ccb67bc38f5a50a192e3208fafc3b575014f35793d9a1994a774', // Replace with your Africa's Talking API key
-  username: 'xhenovolt', // Replace with your Africa's Talking username
+// @ts-expect-error - AfricasTalking doesn't have proper TypeScript definitions
+import AfricasTalking from 'africastalking';
+
+const africasTalkingClient = AfricasTalking({
+  apiKey: 'atsk_3baf21e161cca165c4f5ccb67bc38f5a50a192e3208fafc3b575014f35793d9a1994a774',
+  username: 'xhenovolt',
 });
 
-const sms = AfricasTalking.SMS;
+const sms = africasTalkingClient.SMS;
 
 async function formatPhoneNumber(contact: string): Promise<string> {
   if (/^0\d{9}$/.test(contact)) {
@@ -45,14 +48,14 @@ async function sendSMS(to: string, message: string) {
   }
 }
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const connection = await getConnection();
     const [rows] = await connection.execute('SELECT * FROM reminders');
     await connection.end();
     return NextResponse.json({ data: rows });
-  } catch (error: any) {
-    console.error('Error fetching reminders:', error.message);
+  } catch (error: unknown) {
+    console.error('Error fetching reminders:', error);
     return NextResponse.json({ error: 'Failed to fetch reminders. Please try again later.' }, { status: 500 });
   }
 }
@@ -67,11 +70,12 @@ export async function POST(req: NextRequest) {
       const [rows] = await connection.execute('SELECT contact FROM members WHERE member_code = ?', [body.memberCode]);
       await connection.end();
 
-      if (!rows || (rows as any[]).length === 0 || !(rows as any[])[0].contact) {
+      const rowsArray = rows as unknown[];
+      if (!rowsArray || rowsArray.length === 0 || !(rowsArray[0] as { contact?: string }).contact) {
         return NextResponse.json({ error: 'Member contact not found' }, { status: 404 });
       }
 
-      const contact = (rows as any[])[0].contact;
+      const contact = (rowsArray[0] as { contact: string }).contact;
       const formattedContact = await formatPhoneNumber(contact);
 
       const smsResponse = await sendSMS(formattedContact, body.message);
@@ -81,9 +85,10 @@ export async function POST(req: NextRequest) {
         message: 'SMS sent successfully',
         smsResponse,
       });
-    } catch (error: any) {
-      console.error('Error processing request:', error.message);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error occurred';
+      console.error('Error processing request:', message);
+      return NextResponse.json({ error: message }, { status: 500 });
     }
   } else if (body.title && body.dueDate) {
     // Logic for creating a reminder
@@ -100,9 +105,10 @@ export async function POST(req: NextRequest) {
       const message = `Reminder: ${body.title} is due on ${new Date(body.dueDate).toLocaleString()}`;
       await sendSMS('+256741341483', message);
 
-      return NextResponse.json({ success: true, id: (result as any[])[0].id }, { status: 201 });
-    } catch (error: any) {
-      console.error('Error creating reminder:', error.message);
+      return NextResponse.json({ success: true, id: (result as unknown as { id: number }[])[0].id }, { status: 201 });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Error creating reminder:', message);
       return NextResponse.json({ error: 'Failed to create reminder. Please try again later.' }, { status: 500 });
     }
   } else {
@@ -124,8 +130,9 @@ export async function PUT(req: NextRequest) {
     );
     await connection.end();
     return NextResponse.json({ success: true });
-  } catch (error: any) {
-    console.error('Error updating reminder:', error.message);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Error updating reminder:', message);
     return NextResponse.json({ error: 'Failed to update reminder. Please try again later.' }, { status: 500 });
   }
 }

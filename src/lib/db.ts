@@ -16,6 +16,9 @@ export function getPool() {
   return pool;
 }
 
+// Export pool directly for backward compatibility
+export { pool };
+
 export async function query(sql: string, params: unknown[] = []) {
   const p = getPool();
   const [rows] = await p.execute(sql, params);

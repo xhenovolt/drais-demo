@@ -78,7 +78,7 @@ export const BulkPhotoUploadModal: React.FC<BulkPhotoUploadModalProps> = ({
 
     let bitmap: ImageBitmap;
     try {
-      // @ts-ignore imageOrientation option exists in modern browsers
+      // @ts-expect-error - imageOrientation option exists in modern browsers
       bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
     } catch {
       bitmap = await createImageBitmap(file);
@@ -124,7 +124,7 @@ export const BulkPhotoUploadModal: React.FC<BulkPhotoUploadModalProps> = ({
     // Create ImageBitmap honoring orientation if possible
     let bitmap: ImageBitmap;
     try {
-      // @ts-ignore
+      // @ts-expect-error - imageOrientation option exists in modern browsers
       bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
     } catch {
       bitmap = await createImageBitmap(file);

@@ -1,7 +1,7 @@
 "use client";
 import React, { Fragment, useEffect, useState, useRef, useCallback } from 'react';
 import { Dialog, Transition, Listbox } from '@headlessui/react';
-import { X, ChevronsUpDown, Check, Loader2, Upload, Camera, User, AlertCircle, Image as ImageIcon, Download } from 'lucide-react';
+import { X, ChevronsUpDown, Check, Loader2, Upload, Camera, User, AlertCircle, Image as ImageIcon, Download, BookOpen } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import Swal from 'sweetalert2';
 import jsPDF from 'jspdf';

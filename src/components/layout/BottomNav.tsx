@@ -1,5 +1,6 @@
 "use client";
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 import {
 	LayoutDashboard,
 	Users,
@@ -112,13 +113,13 @@ export const BottomNav: React.FC = () => {
 									</a>
 								);
 							})}
-							<a
+							<Link
 								href="/terms/list"
 								className="flex flex-col items-center gap-1 text-[10px] font-medium text-gray-600 dark:text-gray-300"
 							>
 								<Calendar className="w-5 h-5" />
 								Terms
-							</a>
+							</Link>
 							<a
 								href="/finance"
 								className="flex flex-col items-center gap-1 text-[10px] font-medium text-gray-600 dark:text-gray-300"
