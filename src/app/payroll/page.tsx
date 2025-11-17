@@ -1,11 +1,18 @@
+'use client';
 import React, { useState, useEffect } from 'react';
 
 const API_PAYROLL_DEFINITIONS = '/api/payroll_definitions';
 
+interface PayrollDefinition {
+  id: number;
+  name: string;
+  type: string;
+}
+
 export default function PayrollPage() {
-  const [definitions, setDefinitions] = useState([]);
+  const [definitions, setDefinitions] = useState<PayrollDefinition[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
-  const [form, setForm] = useState({ id: null, name: '', type: '' });
+  const [form, setForm] = useState<{ id: number | null; name: string; type: string }>({ id: null, name: '', type: '' });
 
   const loadDefinitions = async () => {
     const res = await fetch(API_PAYROLL_DEFINITIONS);

@@ -1,4 +1,4 @@
-import { query, transaction } from './db';
+import { query, withTransaction } from './db';
 
 interface StudentFee {
   student_id: number;
@@ -11,9 +11,9 @@ interface StudentFee {
 }
 
 export async function initializeFeesSystem(school_id: number) {
-  return await transaction(async (connection) => {
+  return await withTransaction(async (connection) => {
     // 1. Get all active students
-    const students = await connection.query(`
+    const studentsResult: any = await connection.query(`
       SELECT s.id as student_id, s.class_id, s.stream_id, 
              p.first_name, p.last_name,
              c.name as class_name
@@ -22,23 +22,27 @@ export async function initializeFeesSystem(school_id: number) {
       JOIN classes c ON s.class_id = c.id
       WHERE s.school_id = ? AND s.status = 'active'
     `, [school_id]);
+    const students = studentsResult[0];
 
     // 2. Get current term
-    const [currentTerm] = await connection.query(`
+    const currentTermResult: any = await connection.query(`
       SELECT id FROM terms 
       WHERE school_id = ? AND status = 'active' 
       ORDER BY start_date DESC LIMIT 1
     `, [school_id]);
-
+    const currentTermRows = currentTermResult[0];
+    const currentTerm = currentTermRows[0];
+    
     if (!currentTerm?.id) {
       throw new Error('No active term found');
     }
 
     // 3. Get or create fee structures
-    const structures = await connection.query(`
+    const structuresResult: any = await connection.query(`
       SELECT * FROM fee_structures 
       WHERE school_id = ? AND term_id = ?
     `, [school_id, currentTerm.id]);
+    const structures = structuresResult[0];
 
     // Create default structure if none exists
     if (!structures.length) {
@@ -50,11 +54,12 @@ export async function initializeFeesSystem(school_id: number) {
     }
 
     // 4. Get existing fee items
-    const existingItems = await connection.query(`
+    const existingItemsResult: any = await connection.query(`
       SELECT student_id, term_id 
       FROM student_fee_items
       WHERE school_id = ? AND term_id = ?
     `, [school_id, currentTerm.id]);
+    const existingItems = existingItemsResult[0];
 
     // 5. Create missing fee items
     const existingKeys = new Set(

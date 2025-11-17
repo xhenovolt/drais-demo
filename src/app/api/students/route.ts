@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { getConnection } from '@/lib/db';
 import { NotificationMiddleware } from '@/lib/middleware/notificationMiddleware';
 
 export async function POST(req: NextRequest) {

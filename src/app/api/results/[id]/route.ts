@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db"; // Assume you have a database connection utility
+import { getConnection } from "@/lib/db";
 
 export async function PUT(req: Request, { params }: { params: { id: string } }) {
   const id = parseInt(params.id, 10);
@@ -10,17 +10,19 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   }
 
   try {
-    // Update the result in the database
-    const updatedResult = await db.result.update({
-      where: { id },
-      data: {
-        score: parseFloat(body.score),
-        grade: body.grade || null,
-        remarks: body.remarks || null,
-      },
-    });
+    const conn = await getConnection();
+    try {
+      // Update the result in the database
+      await conn.execute(
+        'UPDATE results SET score = ?, grade = ?, remarks = ? WHERE id = ?',
+        [parseFloat(body.score), body.grade || null, body.remarks || null, id]
+      );
 
-    return NextResponse.json({ success: true, updatedResult });
+      const [rows]: any = await conn.execute('SELECT * FROM results WHERE id = ?', [id]);
+      return NextResponse.json({ success: true, updatedResult: rows[0] });
+    } finally {
+      await conn.end();
+    }
   } catch (error) {
     console.error("Error updating result:", error);
     return NextResponse.json({ success: false, error: "Failed to update result" }, { status: 500 });

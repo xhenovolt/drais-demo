@@ -37,7 +37,8 @@ export async function getConnection() {
 }
 
 export async function withTransaction<T>(fn: (conn: mysql.PoolConnection) => Promise<T>): Promise<T> {
-  const conn = await pool.getConnection();
+  const p = getPool();
+  const conn = await p.getConnection();
   try {
     await conn.beginTransaction();
     const result = await fn(conn);
