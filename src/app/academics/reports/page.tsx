@@ -861,14 +861,13 @@ const ReportsPage = () => {
                             r.teacher_name?.split(' ').map((n: string) => n[0]).join('') || 'N/A';
 
                           return (
-                            <tr key={i} style={!isCore ? { opacity: 0.7, fontStyle: 'italic' } : {}}>
+                            <tr key={i}>
                               <td style={styles.studentTd}>
                                 {r.subject_name}
-                                {!isCore && <span style={{ fontSize: '10px', color: '#666' }}> (Non-core)</span>}
                               </td>
                               {isEndOfTerm && <td style={styles.studentTd}>{midTermMarks}</td>}
                               {isEndOfTerm && <td style={styles.studentTd}>{endTermMarks}</td>}
-                              <td style={styles.studentTd}>100</td>
+                              {/* <td style={styles.studentTd}>100</td> */}
                               <td style={{ ...styles.studentTd, color: 'red', fontWeight: 'bold' }}>
                                 {getGrade(totalMarks, isNursery)}
                               </td>
@@ -1119,8 +1118,9 @@ const styles = {
   commentsCell: {
     textAlign: 'left',
     verticalAlign: 'top',
-    fontSize: 1,
+    fontSize: 11,
     padding: '8px',
+    fontWeight: 500,
   } as React.CSSProperties,
   studentDetails: {
     display: 'flex',

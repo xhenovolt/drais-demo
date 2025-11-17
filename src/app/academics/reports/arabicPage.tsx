@@ -1,9 +1,50 @@
-use client;
+'use client';
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 
+interface SchoolInfo {
+  name: string;
+  address: string;
+  contact: string;
+  center_no: string;
+  registration_no: string;
+  arabic_name: string;
+  arabic_address: string;
+  arabic_contact: string;
+  arabic_center_no: string;
+  arabic_registration_no: string;
+}
+
+interface StudentInfo {
+  first_name: string;
+  last_name: string;
+  age: number;
+  class_name: string;
+}
+
+interface ResultInfo {
+  subject_name: string;
+  score: number;
+  out_of: number;
+  remarks: string;
+}
+
+interface CommentsInfo {
+  class_teacher_comment: string;
+  dos_comment: string;
+  headteacher_comment: string;
+}
+
+interface ReportData {
+  success: boolean;
+  school: SchoolInfo;
+  student: StudentInfo;
+  results: ResultInfo[];
+  comments: CommentsInfo;
+}
+
 const ArabicReportsPage = () => {
-  const [reportData, setReportData] = useState(null);
+  const [reportData, setReportData] = useState<ReportData | null>(null);
 
   useEffect(() => {
     const fetchReportData = async () => {
