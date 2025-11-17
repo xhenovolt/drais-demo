@@ -2,6 +2,9 @@ import mysql from 'mysql2/promise';
 import { pool } from './db';
 
 export async function generateAdmissionNo(): Promise<string> {
+  if (!pool) {
+    throw new Error('Database pool not initialized');
+  }
   const year = new Date().getFullYear();
   const [rows] = await pool.query<mysql.RowDataPacket[]>(`SELECT admission_no FROM students WHERE admission_no LIKE ? ORDER BY id DESC LIMIT 1`, [`${year}/%`]);
   let seq = 1;

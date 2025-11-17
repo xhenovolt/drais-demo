@@ -254,7 +254,7 @@ const EditResultsManager: React.FC = () => {
         <div className="text-center">
           <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Access Denied</h3>
-          <p className="text-gray-600 dark:text-gray-400">You don't have permission to edit results.</p>
+          <p className="text-gray-600 dark:text-gray-400">You don&apos;t have permission to edit results.</p>
         </div>
       </div>
     );

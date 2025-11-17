@@ -840,7 +840,7 @@ const TahfizReportsPage = () => {
                           marginRight: 18,
                         }}
                       >
-                        Teacher's Comment:
+                        Teacher&apos;s Comment:
                       </span>
                       <span
                         style={{
@@ -869,7 +869,7 @@ const TahfizReportsPage = () => {
                           marginRight: 18,
                         }}
                       >
-                        Parent's Signature:
+                        Parent&apos;s Signature:
                       </span>
                       <span
                         style={{

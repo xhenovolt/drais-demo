@@ -77,7 +77,7 @@ export default function GlobalError({
                 Something went wrong!
               </h1>
               <p className="text-lg text-slate-600 max-w-xl mx-auto leading-relaxed mb-4">
-                We encountered an unexpected error. Don't worry - our team has been notified and is working on a fix.
+                We encountered an unexpected error. Don&apos;t worry - our team has been notified and is working on a fix.
               </p>
               {error.digest && (
                 <p className="text-sm text-slate-500 font-mono bg-slate-100 rounded-lg px-4 py-2 inline-block">

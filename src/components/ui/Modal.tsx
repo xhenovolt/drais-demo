@@ -6,17 +6,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 
 // Fallback cn function
-const cn = (...inputs: any[]) => {
+const cn = (...inputs: unknown[]) => {
   return inputs.filter(Boolean).join(' ');
 };
 
-// Try to import the proper cn function
-let properCn: typeof cn;
-try {
-  properCn = require('@/lib/utils').cn;
-} catch {
-  properCn = cn;
-}
+// Use the fallback cn function
+const properCn = cn
 
 interface ModalProps {
   isOpen: boolean;

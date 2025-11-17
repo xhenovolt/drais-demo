@@ -212,7 +212,7 @@ export const EditStudentWizard: React.FC<EditStudentWizardProps> = ({ open, onCl
                   Edit Student
                 </h2>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Update {student?.first_name} {student?.last_name}'s information
+                  Update {student?.first_name} {student?.last_name}&apos;s information
                 </p>
               </div>
             </div>

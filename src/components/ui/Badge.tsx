@@ -2,17 +2,12 @@ import React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 
 // Fallback cn function if utils not available
-const cn = (...inputs: any[]) => {
+const cn = (...inputs: unknown[]) => {
   return inputs.filter(Boolean).join(' ');
 };
 
-// Try to import the proper cn function
-let properCn: typeof cn;
-try {
-  properCn = require('@/lib/utils').cn;
-} catch {
-  properCn = cn;
-}
+// Use the fallback cn function
+const properCn = cn
 
 const badgeVariants = cva(
   'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',

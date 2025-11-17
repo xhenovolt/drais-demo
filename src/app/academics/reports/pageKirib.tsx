@@ -855,7 +855,7 @@ const ReportsPage = () => {
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   {/* Class Teacher's Comments for all divisions */}
                   <div>
-                    <label className="block font-semibold mb-1">Class Teacher's Comment (Division 1)</label>
+                    <label className="block font-semibold mb-1">Class Teacher&apos;s Comment (Division 1)</label>
                     <select className="w-full border rounded px-2 py-1" name="class_teacher_comment_div1">
                       <option>Brilliant!! all my hopes are in you.</option>
                       <option>Outstanding Results, keep focused.</option>
@@ -865,7 +865,7 @@ const ReportsPage = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block font-semibold mb-1">Class Teacher's Comment (Division 2)</label>
+                    <label className="block font-semibold mb-1">Class Teacher&apos;s Comment (Division 2)</label>
                     <select className="w-full border rounded px-2 py-1" name="class_teacher_comment_div2">
                       <option>Promising results, keep more focused.</option>
                       <option>work harder for a first grade.</option>
@@ -875,7 +875,7 @@ const ReportsPage = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block font-semibold mb-1">Class Teacher's Comment (Division 3)</label>
+                    <label className="block font-semibold mb-1">Class Teacher&apos;s Comment (Division 3)</label>
                     <select className="w-full border rounded px-2 py-1" name="class_teacher_comment_div3">
                       <option>Improve and make it to the next grade.</option>
                       <option>Create more time for revision.</option>
@@ -885,7 +885,7 @@ const ReportsPage = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block font-semibold mb-1">Class Teacher's Comment (Division 4)</label>
+                    <label className="block font-semibold mb-1">Class Teacher&apos;s Comment (Division 4)</label>
                     <select className="w-full border rounded px-2 py-1" name="class_teacher_comment_div4">
                       <option>You have to be very active in the discussion groups.</option>
                       <option>concentrate more on your books.</option>
@@ -895,7 +895,7 @@ const ReportsPage = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block font-semibold mb-1">Class Teacher's Comment (Division U)</label>
+                    <label className="block font-semibold mb-1">Class Teacher&apos;s Comment (Division U)</label>
                     <select className="w-full border rounded px-2 py-1" name="class_teacher_comment_divU">
                       <option>More concentration is needed from you in order to perform better.</option>
                       <option>Learn to always consult your friends and teachers.</option>
@@ -906,16 +906,16 @@ const ReportsPage = () => {
                   </div>
                   {/* Headteacher's Comments for all divisions */}
                   <div>
-                    <label className="block font-semibold mb-1">Headteacher's Comment (Division 1)</label>
+                    <label className="block font-semibold mb-1">Headteacher&apos;s Comment (Division 1)</label>
                     <select className="w-full border rounded px-2 py-1" name="headteacher_comment_div1">
                       <option>Great work done, keep it up.</option>
-                      <option>All our hopes are in you, dont relax.</option>
+                      <option>All our hopes are in you, don&apos;t relax.</option>
                       <option>Job well done, keep it up.</option>
                       <option>Excellent performance, keep it up.</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block font-semibold mb-1">Headteacher's Comment (Division 2)</label>
+                    <label className="block font-semibold mb-1">Headteacher&apos;s Comment (Division 2)</label>
                     <select className="w-full border rounded px-2 py-1" name="headteacher_comment_div2">
                       <option>You are a firstgrade material, keep more focused.</option>
                       <option>Quite remarkable performance, keep more focused.</option>
@@ -925,7 +925,7 @@ const ReportsPage = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block font-semibold mb-1">Headteacher's Comment (Division 3)</label>
+                    <label className="block font-semibold mb-1">Headteacher&apos;s Comment (Division 3)</label>
                     <select className="w-full border rounded px-2 py-1" name="headteacher_comment_div3">
                       <option>You need to be active in discussions.</option>
                       <option>You are capable of doing better than doing this.</option>
@@ -935,7 +935,7 @@ const ReportsPage = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block font-semibold mb-1">Headteacher's Comment (Division 4)</label>
+                    <label className="block font-semibold mb-1">Headteacher&apos;s Comment (Division 4)</label>
                     <select className="w-full border rounded px-2 py-1" name="headteacher_comment_div4">
                       <option>You are capable of Improving, just keep focused.</option>
                       <option>Create more time for academic work.</option>
@@ -945,12 +945,12 @@ const ReportsPage = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block font-semibold mb-1">Headteacher's Comment (Division U)</label>
+                    <label className="block font-semibold mb-1">Headteacher&apos;s Comment (Division U)</label>
                     <select className="w-full border rounded px-2 py-1" name="headteacher_comment_divU">
                       <option>concentrate more on academics for a better performance.</option>
                       <option>Cultivate a positive attitude towards academics.</option>
-                      <option>Don't lose hope,there is still room for improvement.</option>
-                      <option>Don't relax, you can still make it to the next level</option>
+                      <option>Don&apos;t lose hope,there is still room for improvement.</option>
+                      <option>Don&apos;t relax, you can still make it to the next level</option>
                     </select>
                   </div>
                 </div>

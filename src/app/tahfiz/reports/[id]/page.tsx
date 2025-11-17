@@ -60,7 +60,7 @@ export default function LearnerReport() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-slate-800">{report.name}'s Report</h1>
+            <h1 className="text-3xl font-bold text-slate-800">{report.name}&apos;s Report</h1>
             <p className="text-slate-600 mt-1">Detailed performance metrics</p>
           </div>
           <button className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-lg shadow hover:shadow-md flex items-center gap-2">

@@ -350,7 +350,7 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({
                                   </div>
                                   {record.notes && (
                                     <div className="text-sm text-gray-600 italic">
-                                      "{record.notes}"
+                                      &ldquo;{record.notes}&rdquo;
                                     </div>
                                   )}
                                 </div>
