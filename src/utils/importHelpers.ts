@@ -31,12 +31,12 @@ export const mapHeaders = (headers: string[]) => {
   return { mappedHeaders, unmappedHeaders };
 };
 
-export const validateData = (rows: any[], mappedHeaders: Record<string, string>) => {
+export const validateData = (rows: Record<string, unknown>[], mappedHeaders: Record<string, string>) => {
   const validRows = [];
   const errors = [];
 
   rows.forEach((row, rowIndex) => {
-    const cleanRow: Record<string, any> = {};
+    const cleanRow: Record<string, unknown> = {};
     let hasError = false;
 
     Object.keys(mappedHeaders).forEach((dbField) => {

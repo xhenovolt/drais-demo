@@ -287,7 +287,7 @@ export default function AttendanceAnalytics({ schoolId, days = 30 }: {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          delay={0.5}
+          transition={{ delay: 0.5 }}
           className="card p-6"
         >
           <div className="flex items-center gap-3 mb-4">
@@ -306,7 +306,7 @@ export default function AttendanceAnalytics({ schoolId, days = 30 }: {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          delay={0.6}
+          transition={{ delay: 0.6 }}
           className="card p-6"
         >
           <div className="flex items-center gap-3 mb-4">
@@ -327,7 +327,7 @@ export default function AttendanceAnalytics({ schoolId, days = 30 }: {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          delay={0.7}
+          transition={{ delay: 0.7 }}
           className="card"
         >
           <div className="p-6 border-b border-gray-200 dark:border-gray-600">
@@ -366,7 +366,7 @@ export default function AttendanceAnalytics({ schoolId, days = 30 }: {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        delay={0.8}
+        transition={{ delay: 0.8 }}
         className="card p-6"
       >
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
@@ -376,19 +376,19 @@ export default function AttendanceAnalytics({ schoolId, days = 30 }: {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="text-center">
             <div className="text-2xl font-bold text-blue-600">
-              {data.monthlyAverage.toFixed(1)}%
+              {data.monthlyAverage?.toFixed(1) || '0.0'}%
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Monthly Average</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-green-600">
-              {data.attendanceGoal}%
+              {data.attendanceGoal || 0}%
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Target Goal</div>
           </div>
           <div className="text-center">
-            <div className={`text-2xl font-bold ${data.monthlyAverage >= data.attendanceGoal ? 'text-green-600' : 'text-red-600'}`}>
-              {data.monthlyAverage >= data.attendanceGoal ? '✓' : '✗'}
+            <div className={`text-2xl font-bold ${(data.monthlyAverage || 0) >= (data.attendanceGoal || 0) ? 'text-green-600' : 'text-red-600'}`}>
+              {(data.monthlyAverage || 0) >= (data.attendanceGoal || 0) ? '✓' : '✗'}
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Goal Status</div>
           </div>

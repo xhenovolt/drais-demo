@@ -14,7 +14,7 @@ export interface ValidationErrors {
   [key: string]: string;
 }
 
-export function validateForm<T extends Record<string, any>>(
+export function validateForm<T extends Record<string, unknown>>(
   data: T,
   rules: ValidationRules
 ): { isValid: boolean; errors: ValidationErrors } {

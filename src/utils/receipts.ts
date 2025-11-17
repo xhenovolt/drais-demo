@@ -88,7 +88,7 @@ export function generateInvoicePDF(data: ReceiptData): jsPDF {
   ], 25, 80);
   
   // Add payment details table
-  (doc as any).autoTable({
+  (doc as { autoTable: (options: Record<string, unknown>) => void }).autoTable({
     startY: 110,
     head: [['Description', 'Amount']],
     body: [

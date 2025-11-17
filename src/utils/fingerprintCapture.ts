@@ -123,11 +123,11 @@ export class FingerprintCapture {
   }
 
   // Main capture method that uses real biometric authentication
-  async capture(studentId: number, preferredMethod: 'phone' | 'external' = 'phone'): Promise<FingerprintCaptureResult> {
+  async capture(studentId: number): Promise<FingerprintCaptureResult> {
     try {
       // Always try real WebAuthn first for the most secure experience
       return await this.captureWebAuthn(studentId);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Fingerprint capture failed:', error);
       return {
         success: false,
