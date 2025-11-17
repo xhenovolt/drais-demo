@@ -154,6 +154,12 @@ export async function POST(req: NextRequest) {
         success: true,
         message: 'Fee items created successfully'
       });
+    } else {
+      await connection.commit();
+      return NextResponse.json({
+        success: false,
+        error: 'Either template_id or items must be provided'
+      }, { status: 400 });
     }
 
   } catch (error: any) {

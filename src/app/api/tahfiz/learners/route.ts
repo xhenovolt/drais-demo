@@ -33,17 +33,21 @@ export async function PATCH(req: NextRequest) {
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });
   if (person_updates) {
     const fields = Object.keys(person_updates).map(k => `${k} = ?`).join(', ');
-    const params = [...Object.values(person_updates), student_updates?.person_id || null];
-    // find person_id
-    const rows: any = await query('SELECT person_id FROM students WHERE id = ?', [id]);
-    const personId = rows[0]?.person_id;
-    if (personId) {
-      await query(`UPDATE people SET ${fields} WHERE id = ?`, [...Object.values(person_updates), personId]);
+    if (fields) {
+      const params = [...Object.values(person_updates), student_updates?.person_id || null];
+      // find person_id
+      const rows: any = await query('SELECT person_id FROM students WHERE id = ?', [id]);
+      const personId = rows[0]?.person_id;
+      if (personId) {
+        await query(`UPDATE people SET ${fields} WHERE id = ?`, [...Object.values(person_updates), personId]);
+      }
     }
   }
   if (student_updates) {
     const fields = Object.keys(student_updates).map(k => `${k} = ?`).join(', ');
-    await query(`UPDATE students SET ${fields} WHERE id = ?`, [...Object.values(student_updates), id]);
+    if (fields) {
+      await query(`UPDATE students SET ${fields} WHERE id = ?`, [...Object.values(student_updates), id]);
+    }
   }
   return NextResponse.json({ success: true });
 }

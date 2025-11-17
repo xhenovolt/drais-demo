@@ -25,6 +25,7 @@ export async function PATCH(req: NextRequest) {
   const { id, ...rest } = body;
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });
   const fields = Object.keys(rest).map(k => `${k} = ?`).join(', ');
+  if (!fields) return NextResponse.json({ error: 'No fields to update' }, { status: 400 });
   await query(`UPDATE tahfiz_plans SET ${fields} WHERE id = ?`, [...Object.values(rest), id]);
   return NextResponse.json({ success: true });
 }
