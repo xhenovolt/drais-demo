@@ -888,13 +888,13 @@ const ReportsPage = () => {
                           );
                         })}
                         <tr style={{ fontWeight: 'bold' }}>
-                          <td colSpan={isEndOfTerm ? 3 : 1} style={styles.studentTd}>TOTAL MARKS:</td>
-                          <td style={styles.studentTd}>{coreResults.length * 100}</td>
-                          <td colSpan={3} style={styles.studentTd}>
-                            AVERAGE: {coreResults.length > 0 ? Math.round(coreResults.reduce((sum, r) => {
-                              const { totalMarks } = calculateMarks(r, isEndOfTerm, enableMarkConversion);
-                              return sum + totalMarks;
-                            }, 0) / coreResults.length) : 0}
+                          <td style={styles.studentTd}>TOTAL MARKS:</td>
+                          {isEndOfTerm && <td style={styles.studentTd}>{Math.round(allGroupedResults.reduce((sum, r) => sum + (r.midTermScore || 0), 0))}</td>}
+                          {isEndOfTerm && <td style={styles.studentTd}>{Math.round(allGroupedResults.reduce((sum, r) => sum + (r.endTermScore || 0), 0))}</td>}
+                          {/* <td style={styles.studentTd}>{totalMarks}</td> */}
+                          <td style={styles.studentTd}></td>
+                          <td colSpan={2} style={styles.studentTd}>
+                            AVERAGE: {allGroupedResults.length > 0 ? Math.round(totalMarks / allGroupedResults.length) : 0}
                           </td>
                         </tr>
                       </tbody>
