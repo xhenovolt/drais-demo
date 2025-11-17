@@ -668,8 +668,8 @@ const ReportsPage = () => {
   return (
     <TeacherInitialsContext.Provider value={{ teacherInitials, handleInitialsChange }}>
       <div className="px-4 mt-0">
-        {/* Filter Section at the top */}
-        <div className="flex flex-wrap gap-2 mb-0">
+        {/* Filter Section at the top - Hidden when printing */}
+        <div className="flex flex-wrap gap-2 mb-0 no-print">
           <select value={filters.term} onChange={e => setFilters(f => ({ ...f, term: e.target.value }))} className="border rounded px-2 py-1">
             <option value="">All Terms</option>
             <option value="Term 1">Term 1</option>
@@ -711,7 +711,7 @@ const ReportsPage = () => {
           <button onClick={exportToExcel} className="px-4 py-2 bg-teal-600 text-white rounded">Export Excel</button>
           <button onClick={() => setShowCustomization(true)} className="px-4 py-2 bg-green-700 text-white rounded">Customize Style</button>
         </div>
-        {loading && <div>Loading..</div>}
+        {loading && <div className="no-print">Loading..</div>}
         <div>
           {Object.values(classGroupsWithPositions).map((classGroup: any) => (
             <div key={classGroup.className}>
@@ -1001,11 +1001,20 @@ const ReportsPage = () => {
           </div>
         )}
         <style jsx global>{`
+          .no-print {
+            display: block;
+          }
+
           @media print {
+            .no-print {
+              display: none !important;
+            }
+
             .classHeading,
             button,
             select,
-            input {
+            input,
+            label {
               display: none !important;
             }
 
