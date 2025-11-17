@@ -16,7 +16,7 @@ export function getPool() {
   return pool;
 }
 
-export async function query(sql: string, params: any[] = []) {
+export async function query(sql: string, params: unknown[] = []) {
   const p = getPool();
   const [rows] = await p.execute(sql, params);
   return rows;

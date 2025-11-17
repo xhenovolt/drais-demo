@@ -123,10 +123,12 @@ export async function batchUpdateFeeItemStatuses(feeItemIds: number[]): Promise<
   }
 }
 
-export default {
+const FeeService = {
   computeFeeItemStatus,
   computeWalletBalance,
   applyFeeItemStatuses,
   updateFeeItemStatus,
   batchUpdateFeeItemStatuses
 };
+
+export default FeeService;

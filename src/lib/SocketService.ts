@@ -1,4 +1,4 @@
-import { Server as SocketIOServer } from 'socket.io';
+import { Server as SocketIOServer, Socket } from 'socket.io';
 import { Server as HTTPServer } from 'http';
 import jwt from 'jsonwebtoken';
 
@@ -72,7 +72,7 @@ export class SocketService {
     console.log('Socket.IO server initialized');
   }
 
-  private async authenticateSocket(socket: any, next: any) {
+  private async authenticateSocket(socket: Socket, next: (err?: Error) => void) {
     try {
       const token = socket.handshake.auth.token || socket.handshake.headers.authorization?.replace('Bearer ', '');
       
@@ -81,7 +81,7 @@ export class SocketService {
       }
 
       // Verify JWT token
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as any;
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key') as { userId: number; schoolId: number };
       
       // Attach user data to socket
       socket.data.userId = decoded.userId;
@@ -94,19 +94,19 @@ export class SocketService {
     }
   }
 
-  emitToUser(userId: number, event: string, data: any) {
+  emitToUser(userId: number, event: string, data: unknown) {
     if (this.io) {
       this.io.to(`user:${userId}`).emit(event, data);
     }
   }
 
-  emitToSchool(schoolId: number, event: string, data: any) {
+  emitToSchool(schoolId: number, event: string, data: unknown) {
     if (this.io) {
       this.io.to(`school:${schoolId}`).emit(event, data);
     }
   }
 
-  emitToAll(event: string, data: any) {
+  emitToAll(event: string, data: unknown) {
     if (this.io) {
       this.io.emit(event, data);
     }

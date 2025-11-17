@@ -1,8 +1,9 @@
+import mysql from 'mysql2/promise';
 import { pool } from './db';
 
 export async function generateAdmissionNo(): Promise<string> {
   const year = new Date().getFullYear();
-  const [rows]: any = await pool.query(`SELECT admission_no FROM students WHERE admission_no LIKE ? ORDER BY id DESC LIMIT 1`, [`${year}/%`]);
+  const [rows] = await pool.query<mysql.RowDataPacket[]>(`SELECT admission_no FROM students WHERE admission_no LIKE ? ORDER BY id DESC LIMIT 1`, [`${year}/%`]);
   let seq = 1;
   if (rows.length) {
     const last: string = rows[0].admission_no || '';

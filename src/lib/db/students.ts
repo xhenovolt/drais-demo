@@ -1,9 +1,10 @@
+import mysql from 'mysql2/promise';
 import { getConnection } from '../db';
 
 export async function getStudentsList() {
   const conn = await getConnection();
   try {
-    const [rows]: any = await conn.execute(`
+    const [rows] = await conn.execute<mysql.RowDataPacket[]>(`
       SELECT 
         s.id,
         s.admission_no,
@@ -34,7 +35,7 @@ export async function getStudentsList() {
 export async function getStudentById(id: number) {
   const conn = await getConnection();
   try {
-    const [rows]: any = await conn.execute(`
+    const [rows] = await conn.execute<mysql.RowDataPacket[]>(`
       SELECT 
         s.*,
         p.first_name,

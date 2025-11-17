@@ -1,3 +1,5 @@
+import mysql from 'mysql2/promise';
+
 interface FeeItem {
   id: number;
   student_id: number;
@@ -30,7 +32,7 @@ export class FinanceService {
   /**
    * Compute wallet current balance dynamically
    */
-  static async computeWalletBalance(walletId: number, connection: any): Promise<number> {
+  static async computeWalletBalance(walletId: number, connection: mysql.Connection | mysql.PoolConnection): Promise<number> {
     const [wallet] = await connection.execute(
       'SELECT opening_balance FROM wallets WHERE id = ?',
       [walletId]
@@ -60,7 +62,7 @@ export class FinanceService {
   /**
    * Update fee item status in database (optional persistence)
    */
-  static async updateFeeItemStatus(feeItemId: number, connection: any): Promise<void> {
+  static async updateFeeItemStatus(feeItemId: number, connection: mysql.Connection | mysql.PoolConnection): Promise<void> {
     const [items] = await connection.execute(
       'SELECT * FROM student_fee_items WHERE id = ?',
       [feeItemId]
@@ -79,7 +81,7 @@ export class FinanceService {
   /**
    * Bulk update fee item statuses for a term/class
    */
-  static async bulkUpdateFeeItemStatuses(schoolId: number, termId?: number, classId?: number, connection?: any): Promise<void> {
+  static async bulkUpdateFeeItemStatuses(schoolId: number, termId?: number, classId?: number, connection?: mysql.Connection | mysql.PoolConnection): Promise<void> {
     const shouldCloseConnection = !connection;
     if (!connection) {
       const { getConnection } = await import('@/lib/db');
@@ -125,7 +127,7 @@ export class FinanceService {
   /**
    * Generate receipt number
    */
-  static async generateReceiptNumber(schoolId: number, connection: any): Promise<string> {
+  static async generateReceiptNumber(schoolId: number, connection: mysql.Connection | mysql.PoolConnection): Promise<string> {
     const [count] = await connection.execute(
       'SELECT COUNT(*) as count FROM receipts WHERE school_id = ? AND DATE(generated_at) = CURDATE()',
       [schoolId]

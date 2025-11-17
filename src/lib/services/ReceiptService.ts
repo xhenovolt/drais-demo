@@ -22,7 +22,7 @@ interface PaymentData {
   school_phone?: string;
   school_email?: string;
   logo_url?: string;
-  receipt_metadata?: any;
+  receipt_metadata?: Record<string, unknown>;
 }
 
 export async function generateReceiptPDF(paymentData: PaymentData): Promise<Buffer> {
@@ -75,7 +75,8 @@ export async function generateReceiptPDF(paymentData: PaymentData): Promise<Buff
         let itemY = startY;
         doc.text('Item', 50, itemY).text('Amount', 400, itemY);
         
-        paymentData.receipt_metadata.items.forEach((item: any, index: number) => {
+        const items = paymentData.receipt_metadata.items as Array<{ item: string; amount: number }>;
+        items.forEach((item, index: number) => {
           itemY += 20;
           doc.text(item.item, 50, itemY)
              .text(`${paymentData.currency} ${item.amount.toLocaleString()}`, 400, itemY);

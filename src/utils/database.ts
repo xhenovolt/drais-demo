@@ -31,7 +31,7 @@ const getPool = () => {
  * @param params Query parameters array
  * @returns Promise with query results
  */
-export async function executeQuery(query: string, params: any[] = []): Promise<any> {
+export async function executeQuery(query: string, params: unknown[] = []): Promise<unknown> {
   try {
     const connection = getPool();
     const [results] = await connection.execute(query, params);
@@ -63,7 +63,7 @@ export async function executeQuerySingle(query: string, params: any[] = []): Pro
  * @param queries Array of {query, params} objects
  * @returns Promise with transaction results
  */
-export async function executeTransaction(queries: { query: string; params?: any[] }[]): Promise<any[]> {
+export async function executeTransaction(queries: { query: string; params?: unknown[] }[]): Promise<unknown[]> {
   const connection = await getPool().getConnection();
   
   try {
@@ -110,10 +110,12 @@ export async function testConnection(): Promise<boolean> {
 }
 
 // Default export for backward compatibility
-export default {
+const DatabaseService = {
   executeQuery,
   executeQuerySingle,
   executeTransaction,
   closeConnection,
   testConnection
 };
+
+export default DatabaseService;

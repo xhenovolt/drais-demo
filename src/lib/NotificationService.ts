@@ -1,3 +1,4 @@
+import mysql from 'mysql2/promise';
 import { getConnection } from '@/lib/db';
 import { SocketService } from '@/lib/SocketService';
 
@@ -112,7 +113,7 @@ export class NotificationService {
    */
   async createFromTemplate(
     templateCode: string, 
-    variables: Record<string, any>, 
+    variables: Record<string, unknown>, 
     recipients: number[], 
     overrides: Partial<NotificationData> = {}
   ): Promise<{ notification_id: number; delivered: number }> {
@@ -338,14 +339,14 @@ export class NotificationService {
   /**
    * Auto-create notification from audit context
    */
-  async autoLog(req: any, context: {
+  async autoLog(req: Request, context: {
     action: string;
     entity_type?: string;
     entity_id?: number;
     actor_user_id?: number;
     school_id?: number;
     recipients?: number[];
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
   }): Promise<void> {
     try {
       // Try to create from template first
@@ -441,7 +442,7 @@ export class NotificationService {
   }
 
   // Helper methods
-  private async enqueueForDelivery(connection: any, notificationId: number, recipients: number[], channel: string): Promise<void> {
+  private async enqueueForDelivery(connection: mysql.Connection | mysql.PoolConnection, notificationId: number, recipients: number[], channel: string): Promise<void> {
     for (const userId of recipients) {
       await connection.execute(`
         INSERT INTO notification_queue (notification_id, recipient_user_id, channel, next_attempt_at)
@@ -450,13 +451,13 @@ export class NotificationService {
     }
   }
 
-  private replacePlaceholders(template: string, variables: Record<string, any>): string {
+  private replacePlaceholders(template: string, variables: Record<string, unknown>): string {
     return template.replace(/\{\{(\w+)\}\}/g, (match, key) => {
       return variables[key] !== undefined ? String(variables[key]) : match;
     });
   }
 
-  private async deliverNotification(queueItem: any): Promise<boolean> {
+  private async deliverNotification(queueItem: { channel: string; [key: string]: unknown }): Promise<boolean> {
     // Implement actual delivery logic here based on channel
     switch (queueItem.channel) {
       case 'email':

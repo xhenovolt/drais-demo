@@ -1,6 +1,4 @@
-import Swal from 'sweetalert2';
-
-export const fetcher = async (url: string) => {
+export const fetcher = async <T = unknown>(url: string): Promise<T> => {
   const response = await fetch(url);
   
   if (!response.ok) {
@@ -8,7 +6,7 @@ export const fetcher = async (url: string) => {
   }
   
   const data = await response.json();
-  return data;
+  return data as T;
 };
 
 export default fetcher;

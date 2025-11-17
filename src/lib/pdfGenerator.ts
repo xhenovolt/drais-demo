@@ -1,4 +1,4 @@
-export function generateTimetablePDF(timetableData: any): void {
+export function generateTimetablePDF(timetableData: Record<string, unknown>): void {
   // Basic PDF generation placeholder
   // In a real implementation, you would use a library like jsPDF or pdfmake
   console.log('Generating timetable PDF...', timetableData);
@@ -9,7 +9,7 @@ export function generateTimetablePDF(timetableData: any): void {
   }
 }
 
-export function generateReportPDF(reportData: any): void {
+export function generateReportPDF(reportData: Record<string, unknown>): void {
   console.log('Generating report PDF...', reportData);
   
   if (typeof window !== 'undefined') {
