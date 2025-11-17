@@ -28,7 +28,7 @@ async function verifyWebAuthnCredential(storedCredential: string, challenge: str
 // GET - Verify fingerprint
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   let connection;
   try {
@@ -36,7 +36,8 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const studentId = parseInt(params.id);
+    const resolvedParams = await params;
+    const studentId = parseInt(resolvedParams.id);
     if (isNaN(studentId)) {
       return NextResponse.json({ error: 'Invalid student ID' }, { status: 400 });
     }
@@ -115,7 +116,7 @@ export async function GET(
 // POST - Verify with challenge-response
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   let connection;
   try {
@@ -123,7 +124,8 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const studentId = parseInt(params.id);
+    const resolvedParams = await params;
+    const studentId = parseInt(resolvedParams.id);
     if (isNaN(studentId)) {
       return NextResponse.json({ error: 'Invalid student ID' }, { status: 400 });
     }

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getConnection } from '@/lib/db';
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
-  const reportCardId = params.id;
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
+  const reportCardId = resolvedParams.id;
   const schoolId = req.headers.get('x-school-id'); // Or get from session/auth
 
   try {

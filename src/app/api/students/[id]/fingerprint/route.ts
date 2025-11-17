@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getConnection } from '@/lib/db';
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   let connection;
   try {
-    const studentId = params.id;
+    const resolvedParams = await params;
+    const studentId = resolvedParams.id;
     connection = await getConnection();
 
     const [result] = await connection.execute(
@@ -35,10 +36,11 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   let connection;
   try {
-    const studentId = params.id;
+    const resolvedParams = await params;
+    const studentId = resolvedParams.id;
     const body = await req.json();
     const { credential_id, public_key, method = 'passkey' } = body;
 
@@ -93,10 +95,11 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   let connection;
   try {
-    const studentId = params.id;
+    const resolvedParams = await params;
+    const studentId = resolvedParams.id;
     connection = await getConnection();
 
     await connection.execute(

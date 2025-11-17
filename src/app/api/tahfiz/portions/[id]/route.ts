@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const portionId = params.id;
+    const resolvedParams = await params;
+    const portionId = resolvedParams.id;
     const body = await request.json();
     const { status, notes, school_id } = body;
 
@@ -55,10 +56,11 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const portionId = params.id;
+    const resolvedParams = await params;
+    const portionId = resolvedParams.id;
     const { searchParams } = new URL(request.url);
     const schoolId = searchParams.get('school_id');
 

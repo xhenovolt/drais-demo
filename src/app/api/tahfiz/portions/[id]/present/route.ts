@@ -15,11 +15,12 @@ async function getConnection() {
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   let connection;
   try {
-    const portionId = params.id;
+    const resolvedParams = await params;
+    const portionId = resolvedParams.id;
     const body = await request.json();
     const { 
       presented, 

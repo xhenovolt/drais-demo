@@ -6,11 +6,12 @@ function safe(v: any) { return (v === undefined || v === '') ? null : v; }
 // POST - Capture and store fingerprint
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   let connection;
   try {
-    const studentId = parseInt(params.id);
+    const resolvedParams = await params;
+    const studentId = parseInt(resolvedParams.id);
     if (isNaN(studentId)) {
       return NextResponse.json({ error: 'Invalid student ID' }, { status: 400 });
     }

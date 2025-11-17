@@ -3,11 +3,12 @@ import { getConnection } from '@/lib/db';
 import { computeFeeItemStatus, updateFeeItemStatus } from '@/lib/services/FeeService';
 import FeeStatusMiddleware from '@/lib/middleware/feeStatusMiddleware';
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   let connection;
   
   try {
-    const feeItemId = parseInt(params.id);
+    const resolvedParams = await params;
+    const feeItemId = parseInt(resolvedParams.id);
     const body = await req.json();
     const { amount, discount, waived, due_date } = body;
 

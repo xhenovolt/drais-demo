@@ -15,11 +15,12 @@ async function getConnection() {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   let connection;
   try {
-    const studentId = params.id;
+    const resolvedParams = await params;
+    const studentId = resolvedParams.id;
     const { searchParams } = new URL(request.url);
     const schoolId = searchParams.get('school_id');
 

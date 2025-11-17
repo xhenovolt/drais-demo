@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getConnection } from '@/lib/db';
 import { generateReceiptPDF } from '@/lib/services/ReceiptService';
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   let connection;
   
   try {
-    const paymentId = parseInt(params.id);
+    const resolvedParams = await params;
+    const paymentId = parseInt(resolvedParams.id);
 
     connection = await getConnection();
 

@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getConnection } from '@/lib/db';
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = params;
+    const resolvedParams = await params;
+    const { id } = resolvedParams;
 
     if (!id) {
       return NextResponse.json({ success: false, message: 'Student ID is required.' }, { status: 400 });

@@ -19,7 +19,7 @@ async function updateClassResult(id: string, data: any) {
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const body = await request.json();
@@ -34,7 +34,8 @@ export async function PUT(
     }
 
     // Update the database
-    const updatedResult = await updateClassResult(params.id, {
+    const resolvedParams = await params;
+    const updatedResult = await updateClassResult(resolvedParams.id, {
       score: score ? parseFloat(score) : null,
       grade: grade || null,
       remarks: remarks || null

@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getConnection } from '@/lib/db';
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const body = await req.json();
     const { name, code, description, weight, deadline } = body;
-    const id = params.id;
+    const resolvedParams = await params;
+    const id = resolvedParams.id;
 
     if (!name || !code || weight === undefined) {
       return NextResponse.json({ 
@@ -36,9 +37,10 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const id = params.id;
+    const resolvedParams = await params;
+    const id = resolvedParams.id;
     const connection = await getConnection();
     
     await connection.execute('DELETE FROM result_types WHERE id = ?', [id]);

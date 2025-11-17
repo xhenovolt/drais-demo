@@ -4,12 +4,13 @@ import { revalidatePath } from 'next/cache';
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const body = await req.json();
     const { score, grade, remarks, actor_user_id } = body;
-    const resultId = parseInt(params.id);
+    const resolvedParams = await params;
+    const resultId = parseInt(resolvedParams.id);
 
     if (!resultId || isNaN(resultId)) {
       return NextResponse.json({ error: 'Invalid result ID' }, { status: 400 });
@@ -22,17 +23,17 @@ export async function PUT(
     const connection = await getConnection();
 
     // Get the current record for audit logging
-    const [currentRecord] = await connection.execute(
+    const [currentRecordRows] = await connection.execute(
       'SELECT * FROM class_results WHERE id = ?',
       [resultId]
-    );
+    ) as any[];
 
-    if (!currentRecord || currentRecord.length === 0) {
+    if (!currentRecordRows || currentRecordRows.length === 0) {
       await connection.end();
       return NextResponse.json({ error: 'Result not found' }, { status: 404 });
     }
 
-    const beforeData = currentRecord[0];
+    const beforeData = currentRecordRows[0];
 
     // Update the record
     await connection.execute(
@@ -48,12 +49,12 @@ export async function PUT(
     );
 
     // Get the updated record
-    const [updatedRecord] = await connection.execute(
+    const [updatedRecordRows] = await connection.execute(
       'SELECT * FROM class_results WHERE id = ?',
       [resultId]
-    );
+    ) as any[];
 
-    const afterData = updatedRecord[0];
+    const afterData = updatedRecordRows[0];
 
     // Log the change in audit_log
     if (actor_user_id) {

@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getConnection } from '@/lib/db';
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   let connection;
   try {
-    const studentId = params.id;
+    const resolvedParams = await params;
+    const studentId = resolvedParams.id;
 
     if (!studentId) {
       return NextResponse.json({ success: false, message: 'Student ID is required' }, { status: 400 });
@@ -62,10 +63,11 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   let connection;
   try {
-    const studentId = params.id;
+    const resolvedParams = await params;
+    const studentId = resolvedParams.id;
     const body = await req.json();
     const { 
       first_name, 
@@ -162,10 +164,11 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   let connection;
   try {
-    const studentId = params.id;
+    const resolvedParams = await params;
+    const studentId = resolvedParams.id;
 
     if (!studentId) {
       return NextResponse.json({ success: false, message: 'Student ID is required' }, { status: 400 });

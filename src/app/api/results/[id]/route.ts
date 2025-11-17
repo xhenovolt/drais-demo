@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { getConnection } from "@/lib/db";
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
-  const id = parseInt(params.id, 10);
+export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
+  const id = parseInt(resolvedParams.id, 10);
   const body = await req.json();
 
   if (!id || !body.score) {

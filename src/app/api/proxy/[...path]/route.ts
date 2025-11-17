@@ -11,20 +11,20 @@ import type { NextRequest } from 'next/server';
  * caching, response sanitization, and stricter header handling.
  */
 
-export async function GET(req: NextRequest, { params }: { params: { path: string[] } }) {
-  return proxy(req, params);
+export async function GET(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
+  return proxy(req, await params);
 }
-export async function POST(req: NextRequest, { params }: { params: { path: string[] } }) {
-  return proxy(req, params);
+export async function POST(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
+  return proxy(req, await params);
 }
-export async function PUT(req: NextRequest, { params }: { params: { path: string[] } }) {
-  return proxy(req, params);
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
+  return proxy(req, await params);
 }
-export async function DELETE(req: NextRequest, { params }: { params: { path: string[] } }) {
-  return proxy(req, params);
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
+  return proxy(req, await params);
 }
-export async function PATCH(req: NextRequest, { params }: { params: { path: string[] } }) {
-  return proxy(req, params);
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
+  return proxy(req, await params);
 }
 
 async function proxy(req: NextRequest, { path }: { path: string[] }) {
