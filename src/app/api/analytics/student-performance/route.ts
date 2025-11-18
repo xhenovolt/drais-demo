@@ -22,10 +22,18 @@ export async function GET(req: NextRequest) {
         rt.name as result_type,
         cr.created_at,
         t.name as term_name,
-        LAG(cr.score) OVER (PARTITION BY s.id, sub.id ORDER BY cr.created_at) as previous_score
+        (
+          SELECT cr2.score 
+          FROM class_results cr2 
+          WHERE cr2.student_id = s.id 
+            AND cr2.subject_id = sub.id 
+            AND cr2.created_at < cr.created_at
+          ORDER BY cr2.created_at DESC 
+          LIMIT 1
+        ) as previous_score
       FROM class_results cr
-      JOIN students s ON cr.student_id = s.id
-      JOIN people p ON s.person_id = p.id
+      JOIN students s ON cr.student_id = s.id AND s.deleted_at IS NULL
+      JOIN people p ON s.person_id = p.id AND p.deleted_at IS NULL
       JOIN classes c ON cr.class_id = c.id
       JOIN subjects sub ON cr.subject_id = sub.id
       JOIN result_types rt ON cr.result_type_id = rt.id
@@ -49,12 +57,12 @@ export async function GET(req: NextRequest) {
         COUNT(CASE WHEN sa.status = 'present' THEN 1 END) as attendance_count,
         COUNT(sa.id) as total_attendance_records
       FROM students s
-      JOIN people p ON s.person_id = p.id
-      JOIN enrollments e ON s.id = e.student_id
+      JOIN people p ON s.person_id = p.id AND p.deleted_at IS NULL
+      JOIN enrollments e ON s.id = e.student_id AND e.status = 'active'
       JOIN classes c ON e.class_id = c.id
       LEFT JOIN class_results cr ON s.id = cr.student_id
       LEFT JOIN student_attendance sa ON s.id = sa.student_id
-      WHERE s.school_id = ? AND s.status = 'active'
+      WHERE s.school_id = ? AND s.status = 'active' AND s.deleted_at IS NULL
       GROUP BY s.id, p.first_name, p.last_name, c.name
       HAVING avg_score < 60 OR failing_subjects >= 2 OR 
              (attendance_count / NULLIF(total_attendance_records, 0)) < 0.8
@@ -71,11 +79,11 @@ export async function GET(req: NextRequest) {
         COUNT(CASE WHEN cr.score >= 80 THEN 1 END) as excellent_subjects,
         COUNT(cr.id) as total_subjects
       FROM students s
-      JOIN people p ON s.person_id = p.id
-      JOIN enrollments e ON s.id = e.student_id
+      JOIN people p ON s.person_id = p.id AND p.deleted_at IS NULL
+      JOIN enrollments e ON s.id = e.student_id AND e.status = 'active'
       JOIN classes c ON e.class_id = c.id
       JOIN class_results cr ON s.id = cr.student_id
-      WHERE s.school_id = ? AND s.status = 'active'
+      WHERE s.school_id = ? AND s.status = 'active' AND s.deleted_at IS NULL
       GROUP BY s.id, p.first_name, p.last_name, c.name
       HAVING avg_score >= 75 AND excellent_subjects >= 3
       ORDER BY avg_score DESC
@@ -96,7 +104,7 @@ export async function GET(req: NextRequest) {
       FROM class_results cr
       JOIN subjects sub ON cr.subject_id = sub.id
       JOIN classes c ON cr.class_id = c.id
-      JOIN students s ON cr.student_id = s.id
+      JOIN students s ON cr.student_id = s.id AND s.deleted_at IS NULL
       WHERE s.school_id = ?
       ${termId ? 'AND cr.term_id = ?' : ''}
       GROUP BY sub.id, sub.name, c.id, c.name

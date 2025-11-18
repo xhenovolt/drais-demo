@@ -20,12 +20,19 @@ export async function GET(req: NextRequest) {
         s.name as store_name,
         COALESCE(SUM(CASE WHEN st.tx_type = 'in' THEN st.quantity ELSE -st.quantity END), 0) as current_stock,
         COUNT(st.id) as transaction_count,
-        MAX(st.created_at) as last_transaction_date
+        MAX(st.created_at) as last_transaction_date,
+        CASE 
+          WHEN COALESCE(SUM(CASE WHEN st.tx_type = 'in' THEN st.quantity ELSE -st.quantity END), 0) < si.reorder_level 
+          THEN 'low'
+          WHEN COALESCE(SUM(CASE WHEN st.tx_type = 'in' THEN st.quantity ELSE -st.quantity END), 0) = 0 
+          THEN 'out_of_stock'
+          ELSE 'normal'
+        END as stock_status
       FROM store_items si
       JOIN stores s ON si.store_id = s.id
       LEFT JOIN store_transactions st ON si.id = st.item_id
       WHERE s.school_id = ?
-      GROUP BY si.id, si.name, si.unit, si.capacity, si.reorder_level, s.name
+      GROUP BY si.id, si.name, si.unit, si.capacity, si.reorder_level, s.id, s.name
       ORDER BY current_stock ASC
     `, [schoolId]);
 
@@ -43,7 +50,7 @@ export async function GET(req: NextRequest) {
       JOIN stores s ON si.store_id = s.id
       LEFT JOIN store_transactions st ON si.id = st.item_id
       WHERE s.school_id = ?
-      GROUP BY si.id, si.name, si.unit, si.reorder_level, s.name
+      GROUP BY si.id, si.name, si.unit, si.reorder_level, s.id, s.name
       HAVING current_stock < si.reorder_level
       ORDER BY shortage DESC
     `, [schoolId]);

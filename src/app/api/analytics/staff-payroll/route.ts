@@ -18,12 +18,20 @@ export async function GET(req: NextRequest) {
         st.position,
         st.status,
         st.hire_date,
-        DATEDIFF(CURDATE(), STR_TO_DATE(st.hire_date, '%Y-%m-%d')) as days_employed,
+        CASE 
+          WHEN st.hire_date IS NOT NULL AND st.hire_date != ''
+          THEN DATEDIFF(CURDATE(), CAST(st.hire_date AS DATE))
+          ELSE NULL
+        END as days_employed,
         COUNT(DISTINCT sa.id) as attendance_records,
         COUNT(DISTINCT CASE WHEN sa.status = 'present' THEN sa.id END) as present_days,
-        (COUNT(DISTINCT CASE WHEN sa.status = 'present' THEN sa.id END) / COUNT(DISTINCT sa.id) * 100) as attendance_rate
+        ROUND(
+          COUNT(DISTINCT CASE WHEN sa.status = 'present' THEN sa.id END) / 
+          NULLIF(COUNT(DISTINCT sa.id), 0) * 100,
+          2
+        ) as attendance_rate
       FROM staff st
-      JOIN people p ON st.person_id = p.id
+      JOIN people p ON st.person_id = p.id AND p.deleted_at IS NULL
       LEFT JOIN staff_attendance sa ON st.id = sa.staff_id 
         AND sa.date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
       WHERE st.school_id = ? AND st.status = 'active'
@@ -37,20 +45,20 @@ export async function GET(req: NextRequest) {
         st.id as staff_id,
         CONCAT(p.first_name, ' ', p.last_name) as staff_name,
         st.position,
-        SUM(ss.amount) as total_salary,
+        COALESCE(SUM(ss.amount), 0) as total_salary,
         COUNT(DISTINCT sp.id) as payment_count,
-        SUM(sp.amount) as total_paid,
-        (SUM(ss.amount) - COALESCE(SUM(sp.amount), 0)) as outstanding_amount,
+        COALESCE(SUM(sp.amount), 0) as total_paid,
+        COALESCE(SUM(ss.amount), 0) - COALESCE(SUM(sp.amount), 0) as outstanding_amount,
         MAX(sp.paid_at) as last_payment_date
       FROM staff st
-      JOIN people p ON st.person_id = p.id
+      JOIN people p ON st.person_id = p.id AND p.deleted_at IS NULL
       LEFT JOIN staff_salaries ss ON st.id = ss.staff_id
+        ${month ? 'AND ss.month = ?' : ''}
       LEFT JOIN salary_payments sp ON st.id = sp.staff_id
       WHERE st.school_id = ? AND st.status = 'active'
-      ${month ? 'AND ss.month = ?' : ''}
       GROUP BY st.id, p.first_name, p.last_name, st.position
       ORDER BY outstanding_amount DESC
-    `, [schoolId, ...(month ? [month] : [])]);
+    `, month ? [month, schoolId] : [schoolId]);
 
     // Payroll distribution
     const payrollDistribution = await connection.execute(`
@@ -81,6 +89,7 @@ export async function GET(req: NextRequest) {
         COUNT(DISTINCT sp.staff_id) as unique_staff_paid
       FROM salary_payments sp
       JOIN staff st ON sp.staff_id = st.id
+      JOIN people p ON st.person_id = p.id AND p.deleted_at IS NULL
       WHERE st.school_id = ?
       AND sp.paid_at >= DATE_SUB(CURDATE(), INTERVAL 90 DAY)
       GROUP BY DATE(sp.paid_at)
@@ -92,7 +101,13 @@ export async function GET(req: NextRequest) {
       SELECT 
         COALESCE(st.position, 'Not Specified') as position,
         COUNT(st.id) as staff_count,
-        AVG(DATEDIFF(CURDATE(), STR_TO_DATE(st.hire_date, '%Y-%m-%d'))) as avg_tenure_days,
+        AVG(
+          CASE 
+            WHEN st.hire_date IS NOT NULL AND st.hire_date != ''
+            THEN DATEDIFF(CURDATE(), CAST(st.hire_date AS DATE))
+            ELSE NULL
+          END
+        ) as avg_tenure_days,
         COUNT(CASE WHEN st.status = 'active' THEN 1 END) as active_count,
         COUNT(CASE WHEN st.status != 'active' THEN 1 END) as inactive_count
       FROM staff st
@@ -115,7 +130,7 @@ export async function GET(req: NextRequest) {
         MAX(sp.paid_at) as last_payment,
         DATEDIFF(CURDATE(), MAX(sp.paid_at)) as days_since_payment
       FROM staff st
-      JOIN people p ON st.person_id = p.id
+      JOIN people p ON st.person_id = p.id AND p.deleted_at IS NULL
       LEFT JOIN staff_salaries ss ON st.id = ss.staff_id
       LEFT JOIN salary_payments sp ON st.id = sp.staff_id
       WHERE st.school_id = ? AND st.status = 'active'

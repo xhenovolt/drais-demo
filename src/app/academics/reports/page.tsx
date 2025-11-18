@@ -122,6 +122,8 @@ const ReportsPage = () => {
   const [saving, setSaving] = useState(false);
   const [nextTermBegins, setNextTermBegins] = useState('18-AUG-2025');
   const [enableMarkConversion, setEnableMarkConversion] = useState(false);
+  const [editableTermValue, setEditableTermValue] = useState<string>('');
+  const [isEditingTerm, setIsEditingTerm] = useState(false);
   const customizationRef = useRef<CustomizationRef>({ current: {} });
 
   // Helper to get term ID (you may need to adjust based on your database)
@@ -207,6 +209,21 @@ const ReportsPage = () => {
       })
       .finally(() => setLoading(false));
   }, []);
+
+  // Load editable term value from localStorage on mount
+  useEffect(() => {
+    const savedTermValue = localStorage.getItem('editable_term_value');
+    if (savedTermValue) {
+      setEditableTermValue(savedTermValue);
+    }
+  }, []);
+
+  // Save editable term value to localStorage when it changes
+  useEffect(() => {
+    if (editableTermValue) {
+      localStorage.setItem('editable_term_value', editableTermValue);
+    }
+  }, [editableTermValue]);
 
   // Enhanced class groups with data validation and error checking
   const classGroups = useMemo((): Record<string, ClassGroup> => {
@@ -751,7 +768,7 @@ const ReportsPage = () => {
               onChange={(e) => setEnableMarkConversion(e.target.checked)}
               className="form-checkbox h-4 w-4 text-blue-600"
             />
-            <span className="text-sm font-medium text-gray-700">Convert Marks (40/60→100)</span>
+            <span className="text-sm font-medium text-gray-700">Convert Marks (100→40/60)</span>
           </label>
           <button onClick={() => window.print()} className="px-4 py-2 bg-blue-600 text-white rounded">Print</button>
           <button onClick={exportToPDF} className="px-4 py-2 bg-green-600 text-white rounded">Export PDF</button>
@@ -877,7 +894,33 @@ const ReportsPage = () => {
                             </p>
                             <p style={{ margin: 0, padding: 0 }}>
                               <span className="font-bold" style={{ color: '#000' }}>Term:</span>
-                              <span style={styles.studentValue}> {principal[0]?.term_name || principal[0]?.term || ''}</span>
+                              <span 
+                                style={{ 
+                                  ...styles.studentValue, 
+                                  cursor: 'pointer',
+                                  borderBottom: isEditingTerm ? '1px solid #000' : 'none',
+                                  display: 'inline-block',
+                                  minWidth: '80px'
+                                }}
+                                contentEditable={isEditingTerm}
+                                suppressContentEditableWarning
+                                onClick={() => setIsEditingTerm(true)}
+                                onBlur={(e) => {
+                                  setIsEditingTerm(false);
+                                  const newValue = e.currentTarget.textContent || '';
+                                  setEditableTermValue(newValue);
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    setIsEditingTerm(false);
+                                    const newValue = e.currentTarget.textContent || '';
+                                    setEditableTermValue(newValue);
+                                  }
+                                }}
+                              >
+                                {editableTermValue || principal[0]?.term_name || principal[0]?.term || 'Term 1'}
+                              </span>
                             </p>
                           </div>
                         </div>
@@ -1319,40 +1362,46 @@ function calculateMarks(groupedResult: GroupedResult, isEndOfTerm: boolean, enab
   const r = groupedResult.regularScore;
 
   if (enableConversion) {
-    // Apply conversion: MT (40→100), EOT (60→100)
+    // Apply conversion ONLY when button is clicked: MT (40→100), EOT (60→100)
+    // Assume marks are already out of 100 in database, scale them to 40/60 format
     if (m !== null && e !== null) {
-      midTermMarks = m <= 40 ? Math.round((m / 40) * 100) : Math.round(m);
-      endTermMarks = e <= 60 ? Math.round((e / 60) * 100) : Math.round(e);
+      // Convert 100-based score to 40 and 60 respectively
+      midTermMarks = Math.round((m / 100) * 40);
+      endTermMarks = Math.round((e / 100) * 60);
     } else if (m !== null && e === null) {
-      midTermMarks = m <= 40 ? Math.round((m / 40) * 100) : Math.round(m);
+      midTermMarks = Math.round((m / 100) * 40);
+      endTermMarks = 0;
     } else if (e !== null && m === null) {
-      endTermMarks = e <= 60 ? Math.round((e / 60) * 100) : Math.round(e);
+      midTermMarks = 0;
+      endTermMarks = Math.round((e / 100) * 60);
     } else if (r !== null) {
-      // For regular scores, assume they're already out of 100
+      // For regular scores out of 100, split into 40/60
+      midTermMarks = Math.round((r / 100) * 40);
+      endTermMarks = Math.round((r / 100) * 60);
+    }
+  } else {
+    // NO conversion - show marks out of 100 as stored in database
+    if (m !== null && e !== null) {
+      midTermMarks = Math.round(m);
+      endTermMarks = Math.round(e);
+    } else if (m !== null && e === null) {
+      midTermMarks = Math.round(m);
+      endTermMarks = 0;
+    } else if (e !== null && m === null) {
+      midTermMarks = 0;
+      endTermMarks = Math.round(e);
+    } else if (r !== null) {
+      // Regular score treated as total out of 100
       midTermMarks = Math.round(r);
       endTermMarks = 0;
     }
-  } else {
-    // No conversion - show raw marks out of 100 as stored
-    if (m !== null && e !== null) {
-      midTermMarks = m <= 40 ? Math.round(m) : Math.round((m / 100) * 40);
-      endTermMarks = e <= 60 ? Math.round(e) : Math.round((e / 100) * 60);
-    } else if (m !== null && e === null) {
-      midTermMarks = m <= 40 ? Math.round(m) : Math.round((m / 100) * 40);
-    } else if (e !== null && m === null) {
-      endTermMarks = e <= 60 ? Math.round(e) : Math.round((e / 100) * 60);
-    } else if (r !== null) {
-      if (r <= 100) {
-        midTermMarks = Math.round((r / 100) * 40);
-        endTermMarks = Math.round((r / 100) * 60);
-      } else {
-        midTermMarks = Math.round((Math.min(r, 100) / 100) * 40);
-        endTermMarks = Math.round((Math.min(r, 100) / 100) * 60);
-      }
-    }
   }
 
-  const totalMarks = enableConversion ? Math.max(midTermMarks, endTermMarks) : (midTermMarks || 0) + (endTermMarks || 0);
+  // Total calculation: if converted, add 40+60=100, otherwise sum the raw 100-based scores
+  const totalMarks = enableConversion 
+    ? (midTermMarks || 0) + (endTermMarks || 0)  // Will be out of 100 (40+60)
+    : Math.max(midTermMarks, endTermMarks);  // Take the higher raw score
+  
   return { midTermMarks, endTermMarks, totalMarks };
 }
 

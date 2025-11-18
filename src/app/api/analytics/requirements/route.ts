@@ -18,16 +18,20 @@ export async function GET(req: NextRequest) {
         COUNT(DISTINCT e.student_id) as total_students,
         COUNT(DISTINCT tsrs.student_id) as submitted_students,
         COUNT(DISTINCT CASE WHEN tsrs.brought = 1 THEN tsrs.student_id END) as compliant_students,
-        (COUNT(DISTINCT CASE WHEN tsrs.brought = 1 THEN tsrs.student_id END) / COUNT(DISTINCT e.student_id) * 100) as compliance_rate
+        ROUND(
+          COUNT(DISTINCT CASE WHEN tsrs.brought = 1 THEN tsrs.student_id END) / 
+          NULLIF(COUNT(DISTINCT e.student_id), 0) * 100, 
+          2
+        ) as compliance_rate
       FROM term_requirement_items tri
       CROSS JOIN enrollments e
       LEFT JOIN term_student_requirement_status tsrs ON tri.id = tsrs.item_id AND e.student_id = tsrs.student_id
-      JOIN students s ON e.student_id = s.id
+      JOIN students s ON e.student_id = s.id AND s.deleted_at IS NULL
       WHERE s.school_id = ? AND s.status = 'active'
       ${termId ? 'AND tri.term_id = ?' : ''}
       GROUP BY tri.id, tri.name, tri.description, tri.mandatory
       ORDER BY compliance_rate ASC
-    `, [schoolId, ...(termId ? [termId] : [])]);
+    `, termId ? [schoolId, termId] : [schoolId]);
 
     // Class-wise compliance
     const classCompliance = await connection.execute(`
@@ -35,17 +39,17 @@ export async function GET(req: NextRequest) {
         c.name as class_name,
         COUNT(DISTINCT e.student_id) as total_students,
         COUNT(DISTINCT tsrs.student_id) as students_with_submissions,
-        AVG(CASE WHEN tsrs.brought = 1 THEN 100 ELSE 0 END) as avg_compliance_rate,
+        ROUND(AVG(CASE WHEN tsrs.brought = 1 THEN 100 ELSE 0 END), 2) as avg_compliance_rate,
         COUNT(DISTINCT CASE WHEN tsrs.brought = 1 THEN tsrs.student_id END) as fully_compliant_students
       FROM classes c
-      JOIN enrollments e ON c.id = e.class_id
-      JOIN students s ON e.student_id = s.id
+      JOIN enrollments e ON c.id = e.class_id AND e.status = 'active'
+      JOIN students s ON e.student_id = s.id AND s.deleted_at IS NULL
       LEFT JOIN term_student_requirement_status tsrs ON s.id = tsrs.student_id
+        ${termId ? 'AND tsrs.term_id = ?' : ''}
       WHERE s.school_id = ? AND s.status = 'active'
-      ${termId ? 'AND tsrs.term_id = ?' : ''}
       GROUP BY c.id, c.name
       ORDER BY avg_compliance_rate DESC
-    `, [schoolId, ...(termId ? [termId] : [])]);
+    `, termId ? [termId, schoolId] : [schoolId]);
 
     // Non-compliant students
     const nonCompliantStudents = await connection.execute(`
@@ -59,18 +63,18 @@ export async function GET(req: NextRequest) {
         COUNT(tri.id) - COUNT(CASE WHEN tsrs.brought = 1 THEN 1 END) as pending_requirements,
         GROUP_CONCAT(CASE WHEN tsrs.brought = 0 OR tsrs.brought IS NULL THEN tri.name END SEPARATOR ', ') as missing_items
       FROM students s
-      JOIN people p ON s.person_id = p.id
-      JOIN enrollments e ON s.id = e.student_id
+      JOIN people p ON s.person_id = p.id AND p.deleted_at IS NULL
+      JOIN enrollments e ON s.id = e.student_id AND e.status = 'active'
       JOIN classes c ON e.class_id = c.id
       CROSS JOIN term_requirement_items tri
       LEFT JOIN term_student_requirement_status tsrs ON s.id = tsrs.student_id AND tri.id = tsrs.item_id
-      WHERE s.school_id = ? AND s.status = 'active'
+      WHERE s.school_id = ? AND s.status = 'active' AND s.deleted_at IS NULL
       ${termId ? 'AND tri.term_id = ?' : ''}
       GROUP BY s.id, p.first_name, p.last_name, s.admission_no, c.name
       HAVING pending_requirements > 0
       ORDER BY pending_requirements DESC, s.admission_no
       LIMIT 50
-    `, [schoolId, ...(termId ? [termId] : [])]);
+    `, termId ? [schoolId, termId] : [schoolId]);
 
     // Requirements timeline
     const requirementsTimeline = await connection.execute(`
@@ -81,14 +85,16 @@ export async function GET(req: NextRequest) {
         DATE(tsrs.created_at) as submission_date
       FROM term_requirement_items tri
       LEFT JOIN term_student_requirement_status tsrs ON tri.id = tsrs.item_id
+        AND tsrs.created_at IS NOT NULL
+        AND DATE(tsrs.created_at) >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
       WHERE tri.term_id IN (
         SELECT id FROM terms WHERE school_id = ?
         ${termId ? 'AND id = ?' : ''}
       )
-      AND tsrs.created_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
       GROUP BY tri.id, tri.name, tri.mandatory, DATE(tsrs.created_at)
+      HAVING submission_date IS NOT NULL
       ORDER BY submission_date DESC
-    `, [schoolId, ...(termId ? [termId] : [])]);
+    `, termId ? [schoolId, termId] : [schoolId]);
 
     // Outstanding items summary
     const outstandingItems = await connection.execute(`
@@ -98,12 +104,16 @@ export async function GET(req: NextRequest) {
         tri.mandatory,
         COUNT(DISTINCT s.id) as total_students,
         COUNT(DISTINCT CASE WHEN tsrs.brought = 0 OR tsrs.brought IS NULL THEN s.id END) as students_missing,
-        (COUNT(DISTINCT CASE WHEN tsrs.brought = 0 OR tsrs.brought IS NULL THEN s.id END) / COUNT(DISTINCT s.id) * 100) as missing_percentage
+        ROUND(
+          COUNT(DISTINCT CASE WHEN tsrs.brought = 0 OR tsrs.brought IS NULL THEN s.id END) / 
+          NULLIF(COUNT(DISTINCT s.id), 0) * 100,
+          2
+        ) as missing_percentage
       FROM term_requirement_items tri
       CROSS JOIN students s
-      JOIN enrollments e ON s.id = e.student_id
+      JOIN enrollments e ON s.id = e.student_id AND e.status = 'active'
       LEFT JOIN term_student_requirement_status tsrs ON tri.id = tsrs.item_id AND s.id = tsrs.student_id
-      WHERE s.school_id = ? AND s.status = 'active'
+      WHERE s.school_id = ? AND s.status = 'active' AND s.deleted_at IS NULL
       ${termId ? 'AND tri.term_id = ?' : ''}
       GROUP BY tri.id, tri.name, tri.description, tri.mandatory
       HAVING students_missing > 0

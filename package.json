@@ -1,6 +1,6 @@
 {
   "name": "DRAIS",
-  "version": "0.0.0036",
+  "version": "0.0.0038",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",

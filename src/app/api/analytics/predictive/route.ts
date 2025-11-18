@@ -109,19 +109,19 @@ async function analyzeSubjectPerformance(
       SUM(CASE WHEN cr.score >= 50 AND cr.score < 60 THEN 1 ELSE 0 END) as passes,
       SUM(CASE WHEN cr.score < 50 THEN 1 ELSE 0 END) as failures,
       
-      -- Term-over-term trend (extract number from term name like 'Term 1', 'Term 2', 'Term 3')
-      AVG(CASE WHEN t.name LIKE '%1%' OR t.name = '1' THEN cr.score END) as term1_avg,
-      AVG(CASE WHEN t.name LIKE '%2%' OR t.name = '2' THEN cr.score END) as term2_avg,
-      AVG(CASE WHEN t.name LIKE '%3%' OR t.name = '3' THEN cr.score END) as term3_avg,
+      -- Term-over-term trend (extract term number from term name)
+      AVG(CASE WHEN t.name LIKE '%1%' OR t.name = 'Term 1' THEN cr.score END) as term1_avg,
+      AVG(CASE WHEN t.name LIKE '%2%' OR t.name = 'Term 2' THEN cr.score END) as term2_avg,
+      AVG(CASE WHEN t.name LIKE '%3%' OR t.name = 'Term 3' THEN cr.score END) as term3_avg,
       
-      -- Teacher info (from class_subjects junction table)
-      CONCAT(teacher_p.first_name, ' ', teacher_p.last_name) as teacher_name
+      -- Teacher info from class_subjects table (correct schema alignment)
+      CONCAT(COALESCE(teacher_p.first_name, ''), ' ', COALESCE(teacher_p.last_name, '')) as teacher_name
       
     FROM class_results cr
     INNER JOIN subjects subj ON cr.subject_id = subj.id
-    INNER JOIN students s ON cr.student_id = s.id
+    INNER JOIN students s ON cr.student_id = s.id AND s.deleted_at IS NULL
     INNER JOIN terms t ON cr.term_id = t.id
-    LEFT JOIN class_subjects cs ON subj.id = cs.subject_id AND cr.class_id = cs.class_id
+    LEFT JOIN class_subjects cs ON cr.class_id = cs.class_id AND cr.subject_id = cs.subject_id
     LEFT JOIN staff teacher_staff ON cs.teacher_id = teacher_staff.id
     LEFT JOIN people teacher_p ON teacher_staff.person_id = teacher_p.id
     ${whereClause}
@@ -210,20 +210,16 @@ async function generateAcademicProjections(
       
       -- Division distribution
       SUM(CASE WHEN cr.score >= 80 THEN 1 ELSE 0 END) as distinctions,
-      SUM(CASE WHEN cr.score >= 60 THEN 1 ELSE 0 END) as credits,
-      
-      -- For chronological sorting
-      t.id as term_id,
-      ay.id as year_id
+      SUM(CASE WHEN cr.score >= 60 THEN 1 ELSE 0 END) as credits
       
     FROM class_results cr
-    INNER JOIN students s ON cr.student_id = s.id
+    INNER JOIN students s ON cr.student_id = s.id AND s.deleted_at IS NULL
     INNER JOIN terms t ON cr.term_id = t.id
     INNER JOIN academic_years ay ON t.academic_year_id = ay.id
     INNER JOIN subjects subj ON cr.subject_id = subj.id
     ${whereClause}
-    GROUP BY t.id, t.name, ay.id, ay.name, subj.subject_type
-    ORDER BY ay.id DESC, t.id DESC
+    GROUP BY t.id, t.name, ay.name, subj.subject_type
+    ORDER BY ay.name DESC, t.name DESC
     LIMIT 12`,
     params
   );

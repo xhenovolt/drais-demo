@@ -32,22 +32,22 @@ export async function GET(request: NextRequest) {
         st.name as stream_name,
         tg.id as group_id,
         tg.name as group_name,
-        CONCAT(tp.first_name, ' ', tp.last_name) as teacher_name,
+        CONCAT(COALESCE(tp.first_name, ''), ' ', COALESCE(tp.last_name, '')) as teacher_name,
         t.id as term_id,
         t.name as term_name,
-        ay.year as academic_year,
+        ay.name as academic_year,
         
         -- REAL aggregated scores from class_results
         COUNT(DISTINCT cr.id) as total_records,
-        AVG(CASE WHEN subj.code LIKE '%TAHFIZ%' OR subj.subject_type = 'tahfiz' 
-            THEN cr.score END) as avg_tahfiz_score,
-        AVG(CASE WHEN subj.code LIKE '%RETENTION%' 
+        AVG(CASE WHEN subj.subject_type = 'tahfiz' THEN cr.score END) as avg_tahfiz_score,
+        AVG(CASE WHEN subj.name LIKE '%Retention%' OR subj.code LIKE '%RETENTION%'
             THEN cr.score END) as avg_retention_score,
-        AVG(CASE WHEN subj.code LIKE '%TAJWEED%' 
+        AVG(CASE WHEN subj.name LIKE '%Tajweed%' OR subj.code LIKE '%TAJWEED%'
             THEN cr.score END) as avg_tajweed_score,
-        AVG(CASE WHEN subj.code LIKE '%RECITATION%' OR subj.code LIKE '%VOICE%'
+        AVG(CASE WHEN subj.name LIKE '%Recitation%' OR subj.name LIKE '%Voice%' 
+            OR subj.code LIKE '%VOICE%' OR subj.code LIKE '%RECIT%'
             THEN cr.score END) as avg_voice_score,
-        SUM(CASE WHEN cr.grade IN ('A', 'B', 'C', 'D') THEN 1 ELSE 0 END) as completed_portions,
+        COUNT(DISTINCT CASE WHEN cr.score >= 50 THEN cr.id END) as completed_portions,
         
         -- Attendance data
         COUNT(DISTINCT ta.id) as total_attendance_records,
@@ -59,18 +59,18 @@ export async function GET(request: NextRequest) {
         SUM(CASE WHEN tp_assigned.status = 'in_progress' THEN 1 ELSE 0 END) as portions_in_progress
         
       FROM students s
-      INNER JOIN people p ON s.person_id = p.id
-      LEFT JOIN classes c ON s.class_id = c.id
-      LEFT JOIN streams st ON s.stream_id = st.id
-      LEFT JOIN tahfiz_groups tg ON s.id = ANY(
-        SELECT JSON_EXTRACT(tg2.students, '$[*]') FROM tahfiz_groups tg2 WHERE tg2.id = tg.id
-      )
-      LEFT JOIN tahfiz_groups tg_teacher ON tg.teacher_id = tg_teacher.teacher_id
-      LEFT JOIN people tp ON tg.teacher_id = tp.id
+      INNER JOIN people p ON s.person_id = p.id AND p.deleted_at IS NULL
+      LEFT JOIN enrollments e ON s.id = e.student_id AND e.status = 'active'
+      LEFT JOIN classes c ON e.class_id = c.id
+      LEFT JOIN streams st ON e.stream_id = st.id
+      LEFT JOIN tahfiz_group_members tgm ON s.id = tgm.student_id
+      LEFT JOIN tahfiz_groups tg ON tgm.group_id = tg.id
+      LEFT JOIN staff teacher_staff ON tg.teacher_id = teacher_staff.id
+      LEFT JOIN people tp ON teacher_staff.person_id = tp.id AND tp.deleted_at IS NULL
       
       -- JOIN with REAL class_results for Tahfiz subjects
       LEFT JOIN class_results cr ON s.id = cr.student_id
-      LEFT JOIN subjects subj ON cr.subject_id = subj.id AND (subj.subject_type = 'tahfiz' OR subj.code LIKE '%TAHFIZ%')
+      LEFT JOIN subjects subj ON cr.subject_id = subj.id AND subj.subject_type = 'tahfiz'
       LEFT JOIN terms t ON cr.term_id = t.id
       LEFT JOIN academic_years ay ON t.academic_year_id = ay.id
       
@@ -83,13 +83,13 @@ export async function GET(request: NextRequest) {
       WHERE s.school_id = ?
         AND s.deleted_at IS NULL
         ${termId ? 'AND cr.term_id = ?' : ''}
-        ${classId ? 'AND s.class_id = ?' : ''}
+        ${classId ? 'AND c.id = ?' : ''}
         ${groupId ? 'AND tg.id = ?' : ''}
         ${studentId ? 'AND s.id = ?' : ''}
       
       GROUP BY s.id, s.admission_no, p.first_name, p.last_name, p.gender, p.photo_url,
                c.id, c.name, st.name, tg.id, tg.name, tp.first_name, tp.last_name,
-               t.id, t.name, ay.year
+               t.id, t.name, ay.name
       
       ORDER BY c.name, p.last_name, p.first_name
     `;
@@ -114,15 +114,16 @@ export async function GET(request: NextRequest) {
             cr.score,
             cr.grade,
             cr.remarks,
-            CONCAT(teacher_p.first_name, ' ', teacher_p.last_name) as teacher_name,
+            CONCAT(COALESCE(teacher_p.first_name, ''), ' ', COALESCE(teacher_p.last_name, '')) as teacher_name,
             t.name as term_name
           FROM class_results cr
           INNER JOIN subjects subj ON cr.subject_id = subj.id
           INNER JOIN terms t ON cr.term_id = t.id
-          LEFT JOIN staff teacher_staff ON subj.teacher_id = teacher_staff.id
-          LEFT JOIN people teacher_p ON teacher_staff.person_id = teacher_p.id
+          LEFT JOIN class_subjects cs ON cr.class_id = cs.class_id AND cr.subject_id = cs.subject_id
+          LEFT JOIN staff teacher_staff ON cs.teacher_id = teacher_staff.id
+          LEFT JOIN people teacher_p ON teacher_staff.person_id = teacher_p.id AND teacher_p.deleted_at IS NULL
           WHERE cr.student_id = ?
-            AND (subj.subject_type = 'tahfiz' OR subj.code LIKE '%TAHFIZ%' OR subj.code LIKE '%QURAN%')
+            AND subj.subject_type = 'tahfiz'
             ${termId ? 'AND cr.term_id = ?' : ''}
           ORDER BY subj.name`,
           termId ? [student.student_id, termId] : [student.student_id]
@@ -130,20 +131,49 @@ export async function GET(request: NextRequest) {
 
         // Get evaluation records
         const [evaluations] = await connection.execute(
-          `SELECT * FROM tahfiz_evaluations WHERE student_id = ? ORDER BY created_at DESC LIMIT 5`,
+          `SELECT 
+            te.id,
+            te.type,
+            te.retention_score,
+            te.tajweed_score,
+            te.voice_score,
+            te.discipline_score,
+            te.remarks,
+            te.evaluated_at,
+            CONCAT(COALESCE(evaluator_p.first_name, ''), ' ', COALESCE(evaluator_p.last_name, '')) as evaluator_name
+          FROM tahfiz_evaluations te
+          LEFT JOIN staff evaluator_staff ON te.evaluator_id = evaluator_staff.id
+          LEFT JOIN people evaluator_p ON evaluator_staff.person_id = evaluator_p.id AND evaluator_p.deleted_at IS NULL
+          WHERE te.student_id = ? 
+          ORDER BY te.evaluated_at DESC 
+          LIMIT 5`,
           [student.student_id]
         );
 
         // Get portion details
         const [portions] = await connection.execute(
           `SELECT 
-            tp.*,
-            tb.name as book_name,
-            tb.total_pages
+            tp.id,
+            tp.portion_name,
+            tp.surah_name,
+            tp.ayah_from,
+            tp.ayah_to,
+            tp.juz_number,
+            tp.page_from,
+            tp.page_to,
+            tp.status,
+            tp.difficulty_level,
+            tp.estimated_days,
+            tp.notes,
+            tp.assigned_at,
+            tp.started_at,
+            tp.completed_at,
+            tb.title as book_name,
+            tb.total_units as total_pages
           FROM tahfiz_portions tp
           LEFT JOIN tahfiz_books tb ON tp.book_id = tb.id
           WHERE tp.student_id = ?
-          ORDER BY tp.created_at DESC`,
+          ORDER BY tp.assigned_at DESC`,
           [student.student_id]
         );
 
