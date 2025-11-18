@@ -56,7 +56,7 @@ const FeesSnapshot: React.FC<FeesSnapshotProps> = ({ data }) => {
                   d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                   initial={{ strokeDasharray: "0 100" }}
                   animate={{ strokeDasharray: `${collectionPercentage} 100` }}
-                  transition={{ duration: 1.5, ease: [0.0, 0.0, 0.2, 1] }}
+                  transition={{ duration: 1.5, ease: [0.0, 0.0, 0.2, 1] as [number, number, number, number] }}
                 />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">

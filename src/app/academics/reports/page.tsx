@@ -5,6 +5,9 @@ import Image from 'next/image';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import * as XLSX from 'xlsx';
+import PromotionSummaryNotification from '@/components/academics/PromotionSummaryNotification';
+import useSWR from 'swr';
+import { fetcher } from '@/utils/fetcher';
 
 // Type definitions
 interface Student {
@@ -120,6 +123,40 @@ const ReportsPage = () => {
   const [nextTermBegins, setNextTermBegins] = useState('18-AUG-2025');
   const [enableMarkConversion, setEnableMarkConversion] = useState(false);
   const customizationRef = useRef<CustomizationRef>({ current: {} });
+
+  // Helper to get term ID (you may need to adjust based on your database)
+  const getTermId = (termName: string): string => {
+    const termMap: Record<string, string> = { 'Term 1': '1', 'Term 2': '2', 'Term 3': '3' };
+    return termMap[termName] || '1';
+  };
+
+  // Fetch promotion data if it's 3rd term
+  const { data: promotionData } = useSWR(
+    filters.term === 'Term 3' && filters.classId
+      ? `/api/academics/promotions?school_id=1&term_id=${getTermId(filters.term)}&class_id=${filters.classId}`
+      : null,
+    fetcher,
+    { revalidateOnFocus: false }
+  );
+
+  const handlePromoteStudents = async (studentIds: number[], newClassId: number) => {
+    try {
+      const response = await fetch('/api/academics/promotions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ studentIds, newClassId, remarks: 'Promoted from 3rd term reports' }),
+      });
+      const result = await response.json();
+      if (result.success) {
+        alert(`Successfully promoted ${studentIds.length} student(s)!`);
+      } else {
+        alert('Failed to promote students: ' + result.message);
+      }
+    } catch (error) {
+      console.error('Error promoting students:', error);
+      alert('Error promoting students');
+    }
+  };
 
   // School info (static for all reports)
   const schoolInfo: SchoolInfo = {
@@ -668,6 +705,16 @@ const ReportsPage = () => {
   return (
     <TeacherInitialsContext.Provider value={{ teacherInitials, handleInitialsChange }}>
       <div className="px-4 mt-0">
+        {/* Promotion Summary Notification - Only for 3rd Term */}
+        {filters.term === 'Term 3' && promotionData && (promotionData as any)?.success && (
+          <div className="mb-6 no-print">
+            <PromotionSummaryNotification
+              data={(promotionData as any).data}
+              onPromoteStudents={handlePromoteStudents}
+            />
+          </div>
+        )}
+
         {/* Filter Section at the top - Hidden when printing */}
         <div className="flex flex-wrap gap-2 mb-0 no-print">
           <select value={filters.term} onChange={e => setFilters(f => ({ ...f, term: e.target.value }))} className="border rounded px-2 py-1">

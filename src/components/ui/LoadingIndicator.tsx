@@ -105,7 +105,7 @@ const LoadingIndicator: React.FC<LoadingIndicatorProps> = ({
             transition={{
               duration: 1.5,
               repeat: Infinity,
-              ease: [0, 0, 1, 1]
+              ease: [0, 0, 1, 1] as [number, number, number, number]
             }}
           />
         </div>

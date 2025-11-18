@@ -37,7 +37,7 @@ export default function ServerErrorPage() {
                 transition={{ 
                   duration: 3, 
                   repeat: Infinity, 
-                  ease: [0.42, 0, 0.58, 1] 
+                  ease: [0.42, 0, 0.58, 1] as [number, number, number, number] 
                 }}
                 className="relative"
               >

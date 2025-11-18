@@ -103,6 +103,7 @@ const TahfizReportsPage = () => {
   };
 
   // Fetch data with auto-refresh every 30 seconds
+  // NOW USES REAL class_results DATA
   const fetchData = async (isRefresh = false) => {
     try {
       if (isRefresh) setRefreshing(true);
@@ -116,11 +117,13 @@ const TahfizReportsPage = () => {
         ...(filters.student && { student_id: filters.student }),
       });
 
-      const response = await fetch(`/api/tahfiz/reports?${queryParams}`);
+      // Use new comprehensive API that fetches REAL results from class_results table
+      const response = await fetch(`/api/tahfiz/reports/comprehensive?${queryParams}`);
       const data = await response.json();
 
       if (data.success) {
         setAllStudents(data.data || []);
+        console.log('✅ Loaded Tahfiz reports with REAL class_results data:', data.count, 'students');
       } else {
         console.error('Failed to fetch data:', data.message);
       }
