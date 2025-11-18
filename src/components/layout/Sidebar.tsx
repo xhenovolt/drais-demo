@@ -759,7 +759,7 @@ const Sidebar: React.FC = () => {
             initial={{ x: isRight ? '100%' : '-100%' }}
             animate={{ x: 0 }}
             exit={{ x: isRight ? '100%' : '-100%' }}
-            transition={{ type: "tween", duration: 0.3, ease: "easeInOut" }}
+            transition={{ type: "tween", duration: 0.3, ease: [0.42, 0, 0.58, 1] }}
             className={clsx(
               'fixed top-0 bottom-0 z-50 w-80 max-w-[85vw] flex flex-col',
               'md:hidden', // Only show on mobile

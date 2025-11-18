@@ -71,7 +71,7 @@ const NewBadge: React.FC<NewBadgeProps> = ({
         transition={{
           duration: 2,
           repeat: Infinity,
-          ease: "easeInOut"
+          ease: [0.42, 0, 0.58, 1]
         }}
       >
         <BadgeContent />

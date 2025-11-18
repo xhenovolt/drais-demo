@@ -130,7 +130,7 @@ export const BellClient: React.FC<BellClientProps> = ({
           transition={{
             duration: 2,
             repeat: Infinity,
-            ease: "easeInOut"
+            ease: [0.42, 0, 0.58, 1]
           }}
           className="absolute -top-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full"
           style={{ 

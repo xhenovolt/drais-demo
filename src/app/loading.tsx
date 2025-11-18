@@ -19,7 +19,7 @@ export default function Loading() {
       transition: {
         duration: 1.5,
         repeat: Infinity,
-        ease: "easeInOut"
+        ease: [0.42, 0, 0.58, 1]
       }
     }
   };
@@ -30,7 +30,7 @@ export default function Loading() {
       transition: {
         duration: 2,
         repeat: Infinity,
-        ease: "linear"
+        ease: [0, 0, 1, 1]
       }
     }
   };

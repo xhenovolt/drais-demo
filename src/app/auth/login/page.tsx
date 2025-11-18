@@ -52,7 +52,7 @@ const LoginPage: React.FC = () => {
           transition={{
             duration: 8,
             repeat: Infinity,
-            ease: "easeInOut"
+            ease: [0.42, 0, 0.58, 1]
           }}
         />
         <motion.div
@@ -64,7 +64,7 @@ const LoginPage: React.FC = () => {
           transition={{
             duration: 10,
             repeat: Infinity,
-            ease: "easeInOut"
+            ease: [0.42, 0, 0.58, 1]
           }}
         />
       </div>
@@ -217,7 +217,7 @@ const LoginPage: React.FC = () => {
                 <motion.div
                   className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
                   animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  transition={{ duration: 1, repeat: Infinity, ease: [0, 0, 1, 1] }}
                 />
               ) : (
                 'Sign In'

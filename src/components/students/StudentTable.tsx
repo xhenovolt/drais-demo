@@ -1124,7 +1124,7 @@ export const StudentTable: React.FC = () => {
             initial={{ height: 0, opacity: 0, y: -10 }}
             animate={{ height: 'auto', opacity: 1, y: 0 }}
             exit={{ height: 0, opacity: 0, y: -10 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
+            transition={{ duration: 0.3, ease: [0.0, 0.0, 0.2, 1] }}
             className="overflow-hidden"
           >
             <div className="card-glass p-6 border-l-4 border-blue-500 dark:border-blue-400 shadow-lg">

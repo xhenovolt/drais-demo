@@ -65,7 +65,7 @@ const FeatureUpdateNotification: React.FC = () => {
               <div className="flex items-center gap-3">
                 <motion.div
                   animate={{ rotate: [0, 15, -15, 0] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  transition={{ duration: 2, repeat: Infinity, ease: [0.42, 0, 0.58, 1] }}
                 >
                   <Sparkles className="w-6 h-6 text-white" />
                 </motion.div>
