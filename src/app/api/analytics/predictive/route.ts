@@ -109,19 +109,20 @@ async function analyzeSubjectPerformance(
       SUM(CASE WHEN cr.score >= 50 AND cr.score < 60 THEN 1 ELSE 0 END) as passes,
       SUM(CASE WHEN cr.score < 50 THEN 1 ELSE 0 END) as failures,
       
-      -- Term-over-term trend
-      AVG(CASE WHEN t.term_number = 1 THEN cr.score END) as term1_avg,
-      AVG(CASE WHEN t.term_number = 2 THEN cr.score END) as term2_avg,
-      AVG(CASE WHEN t.term_number = 3 THEN cr.score END) as term3_avg,
+      -- Term-over-term trend (extract number from term name like 'Term 1', 'Term 2', 'Term 3')
+      AVG(CASE WHEN t.name LIKE '%1%' OR t.name = '1' THEN cr.score END) as term1_avg,
+      AVG(CASE WHEN t.name LIKE '%2%' OR t.name = '2' THEN cr.score END) as term2_avg,
+      AVG(CASE WHEN t.name LIKE '%3%' OR t.name = '3' THEN cr.score END) as term3_avg,
       
-      -- Teacher info
+      -- Teacher info (from class_subjects junction table)
       CONCAT(teacher_p.first_name, ' ', teacher_p.last_name) as teacher_name
       
     FROM class_results cr
     INNER JOIN subjects subj ON cr.subject_id = subj.id
     INNER JOIN students s ON cr.student_id = s.id
     INNER JOIN terms t ON cr.term_id = t.id
-    LEFT JOIN staff teacher_staff ON subj.teacher_id = teacher_staff.id
+    LEFT JOIN class_subjects cs ON subj.id = cs.subject_id AND cr.class_id = cs.class_id
+    LEFT JOIN staff teacher_staff ON cs.teacher_id = teacher_staff.id
     LEFT JOIN people teacher_p ON teacher_staff.person_id = teacher_p.id
     ${whereClause}
     GROUP BY subj.id, subj.name, subj.code, subj.subject_type, teacher_p.first_name, teacher_p.last_name
@@ -201,15 +202,19 @@ async function generateAcademicProjections(
   // Get historical performance data
   const [historicalData] = await connection.execute(
     `SELECT 
-      t.term_number,
-      ay.year as academic_year,
+      t.name as term_name,
+      ay.name as academic_year,
       AVG(cr.score) as avg_score,
       COUNT(DISTINCT cr.student_id) as student_count,
       subj.subject_type,
       
       -- Division distribution
       SUM(CASE WHEN cr.score >= 80 THEN 1 ELSE 0 END) as distinctions,
-      SUM(CASE WHEN cr.score >= 60 THEN 1 ELSE 0 END) as credits
+      SUM(CASE WHEN cr.score >= 60 THEN 1 ELSE 0 END) as credits,
+      
+      -- For chronological sorting
+      t.id as term_id,
+      ay.id as year_id
       
     FROM class_results cr
     INNER JOIN students s ON cr.student_id = s.id
@@ -217,8 +222,8 @@ async function generateAcademicProjections(
     INNER JOIN academic_years ay ON t.academic_year_id = ay.id
     INNER JOIN subjects subj ON cr.subject_id = subj.id
     ${whereClause}
-    GROUP BY t.term_number, ay.year, subj.subject_type
-    ORDER BY ay.year DESC, t.term_number DESC
+    GROUP BY t.id, t.name, ay.id, ay.name, subj.subject_type
+    ORDER BY ay.id DESC, t.id DESC
     LIMIT 12`,
     params
   );
