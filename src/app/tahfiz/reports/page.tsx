@@ -920,7 +920,7 @@ const ReportsPage = () => {
                       </div>
                     </div>
                     {/* Banner */}
-                    <div style={styles.blueBanner}>
+                    <div style={{...styles.blueBanner, cursor: 'text'}} contentEditable suppressContentEditableWarning>
                       {(principal[0]?.result_type_name || 'MID TERM').toUpperCase()} REPORT
                     </div>
                     {/* Student Info */}
@@ -941,19 +941,19 @@ const ReportsPage = () => {
                           <div style={styles.studentInfoContainer}>
                             <p style={{ margin: 0, padding: 0 }}>
                               <span className="font-bold" style={{ color: '#000' }}>Name:</span>
-                              <span style={styles.studentValue}> {student.first_name} {student.last_name}</span>
+                              <span style={{...styles.studentValue, cursor: 'text'}} contentEditable suppressContentEditableWarning> {student.first_name} {student.last_name}</span>
                             </p>
                             <p style={{ margin: 0, padding: 0 }}>
                               <span className="font-bold" style={{ color: '#000' }}>Gender:</span>
-                              <span style={styles.studentValue}> {student.gender || '-'}</span>
+                              <span style={{...styles.studentValue, cursor: 'text'}} contentEditable suppressContentEditableWarning> {student.gender || '-'}</span>
                             </p>
                             <p style={{ margin: 0, padding: 0 }}>
                               <span className="font-bold" style={{ color: '#000' }}>Class:</span>
-                              <span style={styles.studentValue}> {student.class_name}</span>
+                              <span style={{...styles.studentValue, cursor: 'text'}} contentEditable suppressContentEditableWarning> {student.class_name}</span>
                             </p>
                             <p style={{ margin: 0, padding: 0 }}>
                               <span className="font-bold" style={{ color: '#000' }}>Group:</span>
-                              <span style={styles.studentValue} contentEditable={true}> {student.group_name || 'A'}</span>
+                              <span style={{...styles.studentValue, cursor: 'text'}} contentEditable suppressContentEditableWarning> {student.group_name || 'A'}</span>
                             </p>
                           </div>
                           <div style={styles.studentInfoContainer}>
@@ -996,7 +996,7 @@ const ReportsPage = () => {
                       </div>
                     </div>
                     {/* Gray Ribbon */}
-                    <div style={styles.grayRibbon}>Marks attained in each subject</div>
+                    <div style={{...styles.grayRibbon, cursor: 'text'}} contentEditable suppressContentEditableWarning>Marks attained in each subject</div>
                     {/* Subjects Table - Display ALL subjects but only core contribute to grading */}
                     <table style={styles.studentTable}>
                       <thead>
@@ -1035,16 +1035,16 @@ const ReportsPage = () => {
 
                           return (
                             <tr key={i}>
-                              <td style={styles.studentTd}>
+                              <td style={{...styles.studentTd, cursor: 'text'}} contentEditable suppressContentEditableWarning>
                                 {r.subject_name}
                               </td>
-                              <td style={styles.studentTd}>
+                              <td style={{...styles.studentTd, cursor: 'text'}} contentEditable suppressContentEditableWarning>
                                 {totalMarks}
                               </td>
-                              <td style={{ ...styles.studentTd, color: 'red', fontWeight: 'bold' }}>
+                              <td style={{ ...styles.studentTd, color: 'red', fontWeight: 'bold', cursor: 'text' }} contentEditable suppressContentEditableWarning>
                                 {isTahfizSubject(r.subject_name) ? getTahfizDescriptiveGrade(totalCombinedScore) : descriptiveGrade(getGrade(totalMarks, isNursery))}
                               </td>
-                              <td style={styles.studentTd} className="commentsCell">
+                              <td style={{...styles.studentTd, cursor: 'text'}} contentEditable suppressContentEditableWarning className="commentsCell">
                                 {isTahfizSubject(r.subject_name) ? learnerComment : commentsForGrade(getGrade(totalMarks, isNursery))}
                               </td>
                               <td
@@ -1064,10 +1064,10 @@ const ReportsPage = () => {
                         })}
                         <tr style={{ fontWeight: 'bold' }}>
                           <td style={styles.studentTd}>TOTAL MARKS:</td>
-                          {isEndOfTerm && <td style={styles.studentTd}>{Math.round(allGroupedResults.reduce((sum, r) => sum + (r.midTermScore || 0), 0))}</td>}
-                          {isEndOfTerm && <td style={styles.studentTd}>{Math.round(allGroupedResults.reduce((sum, r) => sum + (r.endTermScore || 0), 0))}</td>}
+                          {isEndOfTerm && <td style={{...styles.studentTd, cursor: 'text'}} contentEditable suppressContentEditableWarning>{Math.round(allGroupedResults.reduce((sum, r) => sum + (r.midTermScore || 0), 0))}</td>}
+                          {isEndOfTerm && <td style={{...styles.studentTd, cursor: 'text'}} contentEditable suppressContentEditableWarning>{Math.round(allGroupedResults.reduce((sum, r) => sum + (r.endTermScore || 0), 0))}</td>}
                           <td style={styles.studentTd}></td>
-                          <td colSpan={2} style={styles.studentTd}>
+                          <td colSpan={2} style={{...styles.studentTd, cursor: 'text'}} contentEditable suppressContentEditableWarning>
                             AVERAGE: {allGroupedResults.length > 0 ? Math.round(totalMarks / allGroupedResults.length) : 0}
                           </td>
                         </tr>

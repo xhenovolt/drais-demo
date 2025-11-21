@@ -113,18 +113,18 @@ const TeacherInitialsContext = createContext<TeacherInitialsContextType | null>(
 const API_BASE = process.env.NEXT_PUBLIC_PHP_API_BASE || 'http://localhost/drais/api';
 
 const ReportsPage = () => {
-  const [allStudents, setAllStudents] = useState<Student[]>([]);
-  const [allResults, setAllResults] = useState<Result[]>([]);
   const [filters, setFilters] = useState<Filters>({ term: '', resultType: '', classId: '', student: '' });
-  const [loading, setLoading] = useState(false);
+  const [allResults, setAllResults] = useState<Result[]>([]);
+  const [allStudents, setAllStudents] = useState<Student[]>([]);
   const [showCustomization, setShowCustomization] = useState(false);
   const [customTab, setCustomTab] = useState('school');
+  const [loading, setLoading] = useState(false);
+  const [editableTermValue, setEditableTermValue] = useState<string>('');
+  const [isEditingTerm, setIsEditingTerm] = useState(false);
   const [teacherInitials, setTeacherInitials] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [nextTermBegins, setNextTermBegins] = useState('18-AUG-2025');
   const [enableMarkConversion, setEnableMarkConversion] = useState(false);
-  const [editableTermValue, setEditableTermValue] = useState<string>('');
-  const [isEditingTerm, setIsEditingTerm] = useState(false);
   const customizationRef = useRef<CustomizationRef>({ current: {} });
 
   // Helper to get term ID (you may need to adjust based on your database)
@@ -912,7 +912,7 @@ const ReportsPage = () => {
                       </div>
                     </div>
                     {/* Banner */}
-                    <div style={styles.blueBanner}>
+                    <div style={{...styles.blueBanner, cursor: 'text'}} contentEditable suppressContentEditableWarning>
                       {(principal[0]?.result_type_name || 'MID TERM').toUpperCase()} REPORT
                     </div>
                     {/* Student Info */}
@@ -933,19 +933,35 @@ const ReportsPage = () => {
                           <div style={styles.studentInfoContainer}>
                             <p style={{ margin: 0, padding: 0 }}>
                               <span className="font-bold" style={{ color: '#000' }}>Name:</span>
-                              <span style={styles.studentValue}> {student.first_name} {student.last_name}</span>
+                              <span 
+                                style={{...styles.studentValue, cursor: 'text'}} 
+                                contentEditable 
+                                suppressContentEditableWarning
+                              > {student.first_name} {student.last_name}</span>
                             </p>
                             <p style={{ margin: 0, padding: 0 }}>
                               <span className="font-bold" style={{ color: '#000' }}>Gender:</span>
-                              <span style={styles.studentValue}> {student.gender || '-'}</span>
+                              <span 
+                                style={{...styles.studentValue, cursor: 'text'}} 
+                                contentEditable 
+                                suppressContentEditableWarning
+                              > {student.gender || '-'}</span>
                             </p>
                             <p style={{ margin: 0, padding: 0 }}>
                               <span className="font-bold" style={{ color: '#000' }}>Class:</span>
-                              <span style={styles.studentValue}> {student.class_name}</span>
+                              <span 
+                                style={{...styles.studentValue, cursor: 'text'}} 
+                                contentEditable 
+                                suppressContentEditableWarning
+                              > {student.class_name}</span>
                             </p>
                             <p style={{ margin: 0, padding: 0 }}>
                               <span className="font-bold" style={{ color: '#000' }}>Stream:</span>
-                              <span style={styles.studentValue}> {student.stream_name || 'A'}</span>
+                              <span 
+                                style={{...styles.studentValue, cursor: 'text'}} 
+                                contentEditable 
+                                suppressContentEditableWarning
+                              > {student.stream_name || 'A'}</span>
                             </p>
                           </div>
                           <div style={styles.studentInfoContainer}>
@@ -988,7 +1004,7 @@ const ReportsPage = () => {
                       </div>
                     </div>
                     {/* Gray Ribbon */}
-                    <div style={styles.grayRibbon}>Marks attained in each subject</div>
+                    <div style={{...styles.grayRibbon, cursor: 'text'}} contentEditable suppressContentEditableWarning>Marks attained in each subject</div>
                     {/* Subjects Table - Display ALL subjects but only core contribute to grading */}
                     <table style={styles.studentTable}>
                       <thead>
@@ -1016,12 +1032,12 @@ const ReportsPage = () => {
 
                           return (
                             <tr key={i}>
-                              <td style={styles.studentTd}>{r.subject_name}</td>
-                              {filters.resultType?.toLowerCase() === 'mid term' && <td style={styles.studentTd}>{midTermMarks}</td>}
-                              {filters.resultType?.toLowerCase() === 'end of term' && <td style={styles.studentTd}>{midTermMarks}</td>}
-                              {filters.resultType?.toLowerCase() === 'end of term' && <td style={styles.studentTd}>{endTermMarks}</td>}
-                              <td style={styles.studentTd}>{getGrade(scoreToUse || 0, isNursery)}</td>
-                              <td style={styles.studentTd} className="commentsCell">{commentsForGrade(getGrade(scoreToUse || 0, isNursery))}</td>
+                              <td style={{...styles.studentTd, cursor: 'text'}} contentEditable suppressContentEditableWarning>{r.subject_name}</td>
+                              {filters.resultType?.toLowerCase() === 'mid term' && <td style={{...styles.studentTd, cursor: 'text'}} contentEditable suppressContentEditableWarning>{midTermMarks}</td>}
+                              {filters.resultType?.toLowerCase() === 'end of term' && <td style={{...styles.studentTd, cursor: 'text'}} contentEditable suppressContentEditableWarning>{midTermMarks}</td>}
+                              {filters.resultType?.toLowerCase() === 'end of term' && <td style={{...styles.studentTd, cursor: 'text'}} contentEditable suppressContentEditableWarning>{endTermMarks}</td>}
+                              <td style={{...styles.studentTd, cursor: 'text'}} contentEditable suppressContentEditableWarning>{getGrade(scoreToUse || 0, isNursery)}</td>
+                              <td style={{...styles.studentTd, cursor: 'text'}} contentEditable suppressContentEditableWarning className="commentsCell">{commentsForGrade(getGrade(scoreToUse || 0, isNursery))}</td>
                               <td
                                 style={styles.studentTd}
                                 contentEditable
@@ -1039,12 +1055,12 @@ const ReportsPage = () => {
                         })}
                         <tr style={{ fontWeight: 'bold' }}>
                           <td style={styles.studentTd}>TOTAL MARKS:</td>
-                          {isEndOfTerm && <td style={styles.studentTd}>{Math.round(allGroupedResults.reduce((sum, r) => sum + (r.midTermScore || 0), 0))}</td>}
-                          {!isEndOfTerm && <td style={styles.studentTd}>{Math.round(allGroupedResults.reduce((sum, r) => sum + (r.midTermScore || 0), 0))}</td>}
-                          {isEndOfTerm && <td style={styles.studentTd}>{Math.round(allGroupedResults.reduce((sum, r) => sum + (r.endTermScore || 0), 0))}</td>}
+                          {isEndOfTerm && <td style={{...styles.studentTd, cursor: 'text'}} contentEditable suppressContentEditableWarning>{Math.round(allGroupedResults.reduce((sum, r) => sum + (r.midTermScore || 0), 0))}</td>}
+                          {!isEndOfTerm && <td style={{...styles.studentTd, cursor: 'text'}} contentEditable suppressContentEditableWarning>{Math.round(allGroupedResults.reduce((sum, r) => sum + (r.midTermScore || 0), 0))}</td>}
+                          {isEndOfTerm && <td style={{...styles.studentTd, cursor: 'text'}} contentEditable suppressContentEditableWarning>{Math.round(allGroupedResults.reduce((sum, r) => sum + (r.endTermScore || 0), 0))}</td>}
                           {/* <td style={styles.studentTd}>{totalMarks}</td> */}
                           <td style={styles.studentTd}></td>
-                          <td colSpan={2} style={styles.studentTd}>
+                          <td colSpan={2} style={{...styles.studentTd, cursor: 'text'}} contentEditable suppressContentEditableWarning>
                             AVERAGE: {allGroupedResults.length > 0 ? Math.round(totalMarks / allGroupedResults.length) : 0}
                           </td>
                         </tr>
@@ -1053,7 +1069,7 @@ const ReportsPage = () => {
                     
                     {/* Assessment Section - Modified for Nursery */}
                     <div style={{ marginTop: 20, fontSize: 14 }}>
-                      <h3 style={{ textAlign: 'center', fontWeight: 'bold', marginBottom: 10 }}>
+                      <h3 style={{ textAlign: 'center', fontWeight: 'bold', marginBottom: 10, cursor: 'text' }} contentEditable suppressContentEditableWarning>
                         General Assessment
                       </h3>
                       <div style={{ 
@@ -1066,11 +1082,11 @@ const ReportsPage = () => {
                         <div>
                           {!isNursery ? (
                             <>
-                              <p><strong>Aggregates:</strong> {aggregates}</p>
-                              <p><strong>Division:</strong> {division}</p>
+                              <p><strong>Aggregates:</strong> <span contentEditable suppressContentEditableWarning style={{cursor: 'text'}}>{aggregates}</span></p>
+                              <p><strong>Division:</strong> <span contentEditable suppressContentEditableWarning style={{cursor: 'text'}}>{division}</span></p>
                             </>
                           ) : (
-                            <p><strong>Overall Grade:</strong> {nurseryOverallGrade}</p>
+                            <p><strong>Overall Grade:</strong> <span contentEditable suppressContentEditableWarning style={{cursor: 'text'}}>{nurseryOverallGrade}</span></p>
                           )}
                         </div>
                         <div>
@@ -1631,110 +1647,3 @@ function GradeTable() {
     </div>
   );
 }
-
-// Updated toolbar with improved styling and language selector
-<div className="toolbar-container">
-  <div className="toolbar flex flex-wrap items-center gap-4 p-4 bg-gray-100 border-b border-gray-300 no-print">
-    <select
-      value={filters?.term}
-      onChange={(e) => setFilters?.((f: Filters) => ({ ...f, term: e.target.value }))}
-      className="dropdown border rounded px-3 py-2 text-sm bg-white shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-    >
-      <option value="">All Terms</option>
-      <option value="Term 1">Term 1</option>
-      <option value="Term 2">Term 2</option>
-      <option value="Term 3">Term 3</option>
-    </select>
-
-    <select
-      value={filters?.resultType}
-      onChange={(e) => setFilters?.((f: Filters) => ({ ...f, resultType: e.target.value }))}
-      className="dropdown border rounded px-3 py-2 text-sm bg-white shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-    >
-      <option value="">All Result Types</option>
-      {[...new Set(allResults?.map((r: Result) => r.result_type_name || r.results_type))]
-        .filter(Boolean)
-        .map((rt) => (
-          <option key={String(rt)} value={String(rt)}>
-            {String(rt)}
-          </option>
-        ))}
-    </select>
-
-    <select
-      value={filters?.classId}
-      onChange={(e) => setFilters?.((f: Filters) => ({ ...f, classId: e.target.value }))}
-      className="dropdown border rounded px-3 py-2 text-sm bg-white shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-    >
-      <option value="">All Classes</option>
-      {[...new Set(
-        allStudents?.length
-          ? allStudents.map((s: Student) => s.class_name || s.class_id || '')
-          : allResults?.map((r: Result) => r.class_name || '')
-      )]
-        .filter(Boolean)
-        .map((cid) => {
-          const label = allStudents?.length
-            ? allStudents.find((s: Student) => (s.class_name || s.class_id) === cid)?.class_name || cid
-            : cid;
-          return (
-            <option key={String(cid)} value={String(cid)}>
-              {String(label)}
-            </option>
-          );
-        })}
-    </select>
-
-    <input
-      value={filters?.student}
-      onChange={(e) => setFilters?.((f: Filters) => ({ ...f, student: e.target.value }))}
-      placeholder="Type student name or ID"
-      className="input border rounded px-3 py-2 text-sm bg-white shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-    />
-
-    <select
-      className="dropdown border rounded px-3 py-2 text-sm bg-white shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-    >
-      <option value="English">English</option>
-      <option value="Arabic">Arabic</option>
-      <option value="Luganda">Luganda</option>
-      <option value="Swahili">Swahili</option>
-    </select>
-
-    <button
-      onClick={() => window.print()}
-      className="button bg-blue-600 text-white px-4 py-2 rounded text-sm shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-    >
-      Print
-    </button>
-
-    <button
-      onClick={exportToPDF}
-      className="button bg-green-600 text-white px-4 py-2 rounded text-sm shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
-    >
-      Export PDF
-    </button>
-
-    <button
-      onClick={exportToExcel}
-      className="button bg-teal-600 text-white px-4 py-2 rounded text-sm shadow-sm hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500"
-    >
-      Export Excel
-    </button>
-
-    <button
-      onClick={() => setShowCustomization?.(true)}
-      className="button bg-gray-700 text-white px-4 py-2 rounded text-sm shadow-sm hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500"
-    >
-      Customize Style
-    </button>
-  </div>
-
-  <style jsx>{`
-    @media print {
-      .no-print {
-        display: none !important;
-      }
-    }
-  `}</style>
-</div>
