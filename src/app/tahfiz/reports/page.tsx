@@ -1019,7 +1019,7 @@ const ReportsPage = () => {
                     </table>
                     
                     {/* Assessment Section - Modified for Nursery */}
-                    <div style={{ marginTop: 20, fontSize: 14 }}>
+                    {/* <div style={{ marginTop: 20, fontSize: 14 }}>
                       <h3 style={{ textAlign: 'center', fontWeight: 'bold', marginBottom: 10 }}>
                         General Assessment
                       </h3>
@@ -1044,7 +1044,7 @@ const ReportsPage = () => {
                           <p><strong>Position:</strong> {student.position} out of {student.totalInClass}</p>
                         </div>
                       </div>
-                    </div>
+                    </div> */}
                     {/* Comments Section */}
                     <div style={styles.comments}>
                       <CommentsSection

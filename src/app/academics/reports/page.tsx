@@ -826,6 +826,13 @@ const ReportsPage = () => {
                     return sum + getGradePoint(getGrade(totalMarks, false));
                   }, 0);
                   division = getDivision(aggregates);
+
+                  // Adjust division based on F9 grades
+                  const coreGrades = coreResults.map(r => {
+                    const { totalMarks } = calculateMarks(r, isEndOfTerm, enableMarkConversion);
+                    return getGrade(totalMarks, false);
+                  });
+                  division = adjustDivisionForF9(division, coreGrades);
                 }
 
                 return (
@@ -933,8 +940,9 @@ const ReportsPage = () => {
                       <thead>
                         <tr>
                           <th style={styles.studentTh}>SUBJECT</th>
-                          {isEndOfTerm && <th style={styles.studentTh}>{enableMarkConversion ? 'MT (100)' : 'MT (40)'}</th>}
-                          {isEndOfTerm && <th style={styles.studentTh}>{enableMarkConversion ? 'EOT (100)' : 'EOT (60)'}</th>}
+                          {isEndOfTerm && <th style={styles.studentTh}>{enableMarkConversion ? 'MT ' : 'MT'}</th>}
+                          {!isEndOfTerm && <th style={styles.studentTh}>{enableMarkConversion ? 'MT ' : 'MT'}</th>}
+                          {isEndOfTerm && <th style={styles.studentTh}>{enableMarkConversion ? 'EOT ' : 'EOT'}</th>}
                           {/* <th style={styles.studentTh}>OUT OF</th> */}
                           <th style={styles.studentTh}>GRADE</th>
                           <th style={styles.studentTh}>COMMENT</th>
@@ -943,25 +951,23 @@ const ReportsPage = () => {
                       </thead>
                       <tbody>
                         {allGroupedResults.map((r: GroupedResult, i: number) => {
-                          const { midTermMarks, endTermMarks, totalMarks } = calculateMarks(r, isEndOfTerm, enableMarkConversion);
+                          const { midTermMarks, endTermMarks, totalMarks } = calculateMarks(r, filters.resultType?.toLowerCase() === 'end of term', enableMarkConversion);
                           const isCore = (r.subject_type || 'core').toLowerCase() === 'core';
-                          
+
+                          const scoreToUse = filters.resultType?.toLowerCase() === 'end of term' ? endTermMarks : midTermMarks;
+
                           const initialsKey = `${student.class_name}-${r.subject_name}`;
                           const currentInitials = teacherInitials[initialsKey] || 
                             r.teacher_name?.split(' ').map((n: string) => n[0]).join('') || 'N/A';
 
                           return (
                             <tr key={i}>
-                              <td style={styles.studentTd}>
-                                {r.subject_name}
-                              </td>
-                              {isEndOfTerm && <td style={styles.studentTd}>{midTermMarks}</td>}
-                              {isEndOfTerm && <td style={styles.studentTd}>{endTermMarks}</td>}
-                              {/* <td style={styles.studentTd}>100</td> */}
-                              <td style={{ ...styles.studentTd, color: 'red', fontWeight: 'bold' }}>
-                                {getGrade(totalMarks, isNursery)}
-                              </td>
-                              <td style={styles.studentTd} className="commentsCell">{commentsForGrade(getGrade(totalMarks, isNursery))}</td>
+                              <td style={styles.studentTd}>{r.subject_name}</td>
+                              {filters.resultType?.toLowerCase() === 'mid term' && <td style={styles.studentTd}>{midTermMarks}</td>}
+                              {filters.resultType?.toLowerCase() === 'end of term' && <td style={styles.studentTd}>{midTermMarks}</td>}
+                              {filters.resultType?.toLowerCase() === 'end of term' && <td style={styles.studentTd}>{endTermMarks}</td>}
+                              <td style={styles.studentTd}>{getGrade(scoreToUse || 0, isNursery)}</td>
+                              <td style={styles.studentTd} className="commentsCell">{commentsForGrade(getGrade(scoreToUse || 0, isNursery))}</td>
                               <td
                                 style={styles.studentTd}
                                 contentEditable
@@ -980,6 +986,7 @@ const ReportsPage = () => {
                         <tr style={{ fontWeight: 'bold' }}>
                           <td style={styles.studentTd}>TOTAL MARKS:</td>
                           {isEndOfTerm && <td style={styles.studentTd}>{Math.round(allGroupedResults.reduce((sum, r) => sum + (r.midTermScore || 0), 0))}</td>}
+                          {!isEndOfTerm && <td style={styles.studentTd}>{Math.round(allGroupedResults.reduce((sum, r) => sum + (r.midTermScore || 0), 0))}</td>}
                           {isEndOfTerm && <td style={styles.studentTd}>{Math.round(allGroupedResults.reduce((sum, r) => sum + (r.endTermScore || 0), 0))}</td>}
                           {/* <td style={styles.studentTd}>{totalMarks}</td> */}
                           <td style={styles.studentTd}></td>
@@ -1013,10 +1020,50 @@ const ReportsPage = () => {
                           )}
                         </div>
                         <div>
-                          <p><strong>Position:</strong> {student.position} out of {student.totalInClass}</p>
+                          
+                          <div
+                            contentEditable
+                            suppressContentEditableWarning
+                            style={{ 
+                              display: 'flex', 
+                              justifyContent: 'space-between', 
+                              padding: '10px 20px', 
+                              border: '1px solid #000', 
+                              borderRadius: 8, 
+                              cursor: 'text',
+                              minHeight: '50px'
+                            }}
+                          >
+                            {
+                              (() => {
+                                const currentClass = student.class_name;
+                                const nextClass = currentClass.replace(/\d+/, (match: string) => parseInt(match) + 1);
+
+                                if (filters.resultType?.toLowerCase().includes('end')) {
+                                  if (division === 'Division 1' || division === 'Division 2' || division === 'Division 3') {
+                                    return `Promoted to next class `;
+                                    // return `Promoted to next class (${nextClass})`;
+                                  } else if (division === 'Division 4') {
+                                    return 'Advised to try the next class with remedial support';
+                                  } else {
+                                    return 'Advised to repeat this class';
+                                  }
+                                }
+
+                                return 'Promotion status will be determined at the end of the term.';
+                              })()
+                            }
+                          </div>
                         </div>
                       </div>
                     </div>
+                    {/* Promotion Status Section */}
+                    {/* <div style={{ marginTop: 20, fontSize: 14 }}>
+                      <h3 style={{ textAlign: 'center', fontWeight: 'bold', marginBottom: 10 }}>
+                        Promotion Status
+                      </h3>
+                      
+                    </div> */}
                     {/* Comments Section */}
                     <div style={styles.comments}>
                       <CommentsSection
@@ -1342,18 +1389,27 @@ const styles = {
   } as React.CSSProperties,
 };
 
+// Adjust division based on the presence of F9 grades
+function adjustDivisionForF9(division: string, grades: string[]): string {
+  if (grades.includes('F9')) {
+    switch (division) {
+      case 'Division 1':
+        return 'Division 2';
+      case 'Division 2':
+        return 'Division 3';
+      case 'Division 3':
+        return 'Division 4';
+      case 'Division 4':
+        return 'Division U';
+      default:
+        return division; // Keep the same if already in the last division
+    }
+  }
+  return division; // No adjustment needed if no F9 grades
+}
+
 // Enhanced calculation function for marks with conditional conversion
 function calculateMarks(groupedResult: GroupedResult, isEndOfTerm: boolean, enableConversion: boolean = false) {
-  if (!isEndOfTerm) {
-    const raw = groupedResult.regularScore ?? groupedResult.midTermScore ?? groupedResult.endTermScore ?? 0;
-    const totalMarks = enableConversion ? Math.round(raw) : Math.round(raw);
-    return {
-      midTermMarks: Math.round(raw),
-      endTermMarks: 0,
-      totalMarks: totalMarks
-    };
-  }
-
   let midTermMarks = 0;
   let endTermMarks = 0;
 
@@ -1363,45 +1419,24 @@ function calculateMarks(groupedResult: GroupedResult, isEndOfTerm: boolean, enab
 
   if (enableConversion) {
     // Apply conversion ONLY when button is clicked: MT (40→100), EOT (60→100)
-    // Assume marks are already out of 100 in database, scale them to 40/60 format
-    if (m !== null && e !== null) {
-      // Convert 100-based score to 40 and 60 respectively
+    if (m !== null) {
       midTermMarks = Math.round((m / 100) * 40);
+    }
+    if (e !== null) {
       endTermMarks = Math.round((e / 100) * 60);
-    } else if (m !== null && e === null) {
-      midTermMarks = Math.round((m / 100) * 40);
-      endTermMarks = 0;
-    } else if (e !== null && m === null) {
-      midTermMarks = 0;
-      endTermMarks = Math.round((e / 100) * 60);
-    } else if (r !== null) {
-      // For regular scores out of 100, split into 40/60
-      midTermMarks = Math.round((r / 100) * 40);
-      endTermMarks = Math.round((r / 100) * 60);
     }
   } else {
-    // NO conversion - show marks out of 100 as stored in database
-    if (m !== null && e !== null) {
+    if (m !== null) {
       midTermMarks = Math.round(m);
+    }
+    if (e !== null) {
       endTermMarks = Math.round(e);
-    } else if (m !== null && e === null) {
-      midTermMarks = Math.round(m);
-      endTermMarks = 0;
-    } else if (e !== null && m === null) {
-      midTermMarks = 0;
-      endTermMarks = Math.round(e);
-    } else if (r !== null) {
-      // Regular score treated as total out of 100
-      midTermMarks = Math.round(r);
-      endTermMarks = 0;
     }
   }
 
-  // Total calculation: if converted, add 40+60=100, otherwise sum the raw 100-based scores
-  const totalMarks = enableConversion 
-    ? (midTermMarks || 0) + (endTermMarks || 0)  // Will be out of 100 (40+60)
-    : Math.max(midTermMarks, endTermMarks);  // Take the higher raw score
-  
+  // Total calculation: Only use end-term marks for EOT reports
+  const totalMarks = isEndOfTerm ? endTermMarks : midTermMarks;
+
   return { midTermMarks, endTermMarks, totalMarks };
 }
 
