@@ -18,7 +18,7 @@ interface Student {
   last_name: string;
   class_name: string;
   gender?: string;
-  stream_name?: string;
+  group_name?: string;
   results: Result[];
   totalMarks?: number;
   averageMarks?: number;
@@ -46,12 +46,13 @@ interface Result {
   first_name: string;
   last_name: string;
   gender?: string;
-  stream_name?: string;
+  group_name?: string;
   subject_type?: string;
   mid_term_score?: number;
   end_term_score?: number;
   teacher_initials?: string;
   class_id?: number;
+  comment?: string; // Add this property to store comments for each result
 }
 
 interface ClassGroup {
@@ -268,7 +269,7 @@ const ReportsPage = () => {
           last_name: r.last_name,
           class_name: r.class_name,
           gender: r.gender,
-          stream_name: r.stream_name,
+          group_name: r.group_name,
           results: [],
         };
         groups[className].students.push(student);
@@ -695,7 +696,7 @@ const ReportsPage = () => {
   // Export reports to Excel
   const exportToExcel = (): void => {
     const workbook = XLSX.utils.book_new();
-    Object.values(classGroupsWithPositions).forEach((classGroup: ClassGroup) => {
+    Object.values(tahfizClassGroupsWithPositions as Record<string, ClassGroup>).forEach((classGroup: ClassGroup) => {
       const worksheetData: (string | number)[][] = [
         ['Student Name', 'Subject', 'Teacher Initials', 'Score'],
         ...classGroup.students.flatMap((student: Student) =>
@@ -841,6 +842,61 @@ const ReportsPage = () => {
                   division = getDivision(aggregates);
                 }
 
+                // Helper to detect Tahfiz-related subjects robustly
+                const isTahfizSubject = (name: string = ''): boolean => {
+                  const key = (name || '').toLowerCase().replace(/[’'`]/g, "");
+                  return /tajweed|mura|muraaja|muraajah|juzu|juz|voice|pronunciation/.test(key);
+                };
+
+                // Map combined Tahfiz score to a descriptive grade for the GRADE column
+                const getTahfizDescriptiveGrade = (combined: number): string => {
+                  if (combined >= 85) return 'Profound';
+                  if (combined >= 70) return 'Very Good';
+                  if (combined >= 50) return 'Fair';
+                  return 'Weak';
+                };
+
+                // Calculate Tahfiz-specific metrics
+                const calculateTahfizMetrics = (results: Result[]) => {
+                  const tahfizScores = results.filter((r: Result) => isTahfizSubject(r.subject_name || r.subject_name || ''));
+
+                  const totalCombinedScore = tahfizScores.reduce((sum: number, r: Result) => sum + (Number(r.score) || 0), 0);
+
+                  let learnerComment = '';
+                  if (totalCombinedScore >= 85) {
+                    learnerComment = 'Excellent — keep it up.';
+                  } else if (totalCombinedScore >= 70) {
+                    learnerComment = 'Very good — continue practicing.';
+                  } else if (totalCombinedScore >= 50) {
+                    learnerComment = 'Unsatisfactory, please see your teacher.';
+                  } else {
+                    learnerComment = 'Failed, please see your teacher for guidance.';
+                  }
+
+                  // Apply the unified comment to all relevant Tahfiz subject results
+                  tahfizScores.forEach((r: Result) => {
+                    r.comment = learnerComment;
+                  });
+
+                  return { totalCombinedScore, learnerComment };
+                };
+
+                // Discipline Comment Logic
+                const getDisciplineComment = (disciplineScore: number) => {
+                  if (disciplineScore >= 90) {
+                    return 'Excellent discipline and behavior.';
+                  } else if (disciplineScore >= 70) {
+                    return 'Generally disciplined with a few minor issues.';
+                  } else if (disciplineScore >= 50) {
+                    return 'Average discipline; improvement needed.';
+                  } else {
+                    return 'Poor discipline; requires close monitoring.';
+                  }
+                };
+
+                // Calculate Tahfiz metrics for the student
+                const { totalCombinedScore, learnerComment } = calculateTahfizMetrics(student.results);
+
                 return (
                   <div key={student.student_id} style={styles.reportPage}>
                     {/* Header */}
@@ -896,8 +952,8 @@ const ReportsPage = () => {
                               <span style={styles.studentValue}> {student.class_name}</span>
                             </p>
                             <p style={{ margin: 0, padding: 0 }}>
-                              <span className="font-bold" style={{ color: '#000' }}>Stream:</span>
-                              <span style={styles.studentValue}> {student.stream_name || 'A'}</span>
+                              <span className="font-bold" style={{ color: '#000' }}>Group:</span>
+                              <span style={styles.studentValue} contentEditable={true}> {student.group_name || 'A'}</span>
                             </p>
                           </div>
                           <div style={styles.studentInfoContainer}>
@@ -986,10 +1042,10 @@ const ReportsPage = () => {
                                 {totalMarks}
                               </td>
                               <td style={{ ...styles.studentTd, color: 'red', fontWeight: 'bold' }}>
-                                {descriptiveGrade(getGrade(totalMarks, isNursery))}
+                                {isTahfizSubject(r.subject_name) ? getTahfizDescriptiveGrade(totalCombinedScore) : descriptiveGrade(getGrade(totalMarks, isNursery))}
                               </td>
                               <td style={styles.studentTd} className="commentsCell">
-                                {commentsForGrade(getGrade(totalMarks, isNursery))}
+                                {isTahfizSubject(r.subject_name) ? learnerComment : commentsForGrade(getGrade(totalMarks, isNursery))}
                               </td>
                               <td
                                 style={styles.studentTd}
@@ -1491,7 +1547,6 @@ function CommentsSection({
   
   return (
     <div style={{ marginTop: '1%' }}>
-      Comments/Remarks
       <div style={{ marginTop: 2 }}>
         <div style={{ marginBottom: 10, width: '100%' }}>
           <span style={styles.commentRibbon}>Class Teacher&apos;s Comment:</span>
@@ -1513,8 +1568,9 @@ function CommentsSection({
         >
           {nextTermBegins}
         </div>
-        <div style={{ textDecoration: 'underline dashed', marginTop: 5 }}>Next Term Begins</div>
       </div>
     </div>
   );
 }
+
+// cleaned up stray debug block (removed)

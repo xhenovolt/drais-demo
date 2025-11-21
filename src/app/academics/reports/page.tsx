@@ -17,6 +17,7 @@ interface Student {
   first_name: string;
   last_name: string;
   class_name: string;
+  class_id?: string | number; // Added class_id as optional
   gender?: string;
   stream_name?: string;
   results: Result[];
@@ -734,46 +735,99 @@ const ReportsPage = () => {
 
         {/* Filter Section at the top - Hidden when printing */}
         <div className="flex flex-wrap gap-2 mb-0 no-print">
-          <select value={filters.term} onChange={e => setFilters(f => ({ ...f, term: e.target.value }))} className="border rounded px-2 py-1">
+          <select
+            value={filters.term}
+            onChange={(e) => setFilters((f) => ({ ...f, term: e.target.value }))}
+            className="dropdown border rounded px-3 py-2 text-sm bg-white shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
             <option value="">All Terms</option>
             <option value="Term 1">Term 1</option>
             <option value="Term 2">Term 2</option>
             <option value="Term 3">Term 3</option>
           </select>
-          <select value={filters.resultType} onChange={e => setFilters(f => ({ ...f, resultType: e.target.value }))} className="border rounded px-2 py-1">
+
+          <select
+            value={filters.resultType}
+            onChange={(e) => setFilters((f) => ({ ...f, resultType: e.target.value }))}
+            className="dropdown border rounded px-3 py-2 text-sm bg-white shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
             <option value="">All Result Types</option>
-            {/* Use result_type_name (fallback to results_type) from API */}
-            {[...new Set(allResults.map((r:any) => r.result_type_name || r.results_type))].filter(Boolean).map((rt:string) =>
-              <option key={rt} value={rt}>{rt}</option>
-            )}
+            {[...new Set(allResults.map((r) => r.result_type_name || r.results_type))]
+              .filter(Boolean)
+              .map((rt) => (
+                <option key={rt} value={rt}>
+                  {rt}
+                </option>
+              ))}
           </select>
-          <select value={filters.classId} onChange={e => setFilters(f => ({ ...f, classId: e.target.value }))} className="border rounded px-2 py-1">
+
+          <select
+            value={filters.classId}
+            onChange={(e) => setFilters((f) => ({ ...f, classId: e.target.value }))}
+            className="dropdown border rounded px-3 py-2 text-sm bg-white shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
             <option value="">All Classes</option>
-            {/* Fallback to class names from results if students list is empty */}
             {[...new Set(
-              (allStudents.length ? allStudents.map((s:any)=> s.class_name || s.class_id) : allResults.map((r:any)=> r.class_name))
-            )].filter(Boolean).map((cid:string) => {
-              const label = allStudents.length
-                ? (allStudents.find((s:any)=> (s.class_name || s.class_id) === cid)?.class_name || cid)
-                : cid;
-              const value = String(cid);
-              return <option key={value} value={value}>{label}</option>;
-            })}
+              allStudents.length
+                ? allStudents.map((s) => s.class_name || s.class_id)
+                : allResults.map((r) => r.class_name)
+            )]
+              .filter(Boolean)
+              .map((cid) => {
+                const label = allStudents.length
+                  ? allStudents.find((s) => (s.class_name || s.class_id) === cid)?.class_name || cid
+                  : cid;
+                return (
+                  <option key={cid} value={cid}>
+                    {label}
+                  </option>
+                );
+              })}
           </select>
-          <input value={filters.student} onChange={e => setFilters(f => ({ ...f, student: e.target.value }))} placeholder="Type student name or ID" className="border rounded px-2 py-1" />
-          <label className="flex items-center gap-2 px-3 py-2 bg-blue-50 rounded border">
-            <input
-              type="checkbox"
-              checked={enableMarkConversion}
-              onChange={(e) => setEnableMarkConversion(e.target.checked)}
-              className="form-checkbox h-4 w-4 text-blue-600"
-            />
-            <span className="text-sm font-medium text-gray-700">Convert Marks (100→40/60)</span>
-          </label>
-          <button onClick={() => window.print()} className="px-4 py-2 bg-blue-600 text-white rounded">Print</button>
-          <button onClick={exportToPDF} className="px-4 py-2 bg-green-600 text-white rounded">Export PDF</button>
-          <button onClick={exportToExcel} className="px-4 py-2 bg-teal-600 text-white rounded">Export Excel</button>
-          <button onClick={() => setShowCustomization(true)} className="px-4 py-2 bg-green-700 text-white rounded">Customize Style</button>
+
+          <input
+            value={filters.student}
+            onChange={(e) => setFilters((f) => ({ ...f, student: e.target.value }))}
+            placeholder="Type student name or ID"
+            className="input border rounded px-3 py-2 text-sm bg-white shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+
+          <select
+            className="dropdown border rounded px-3 py-2 text-sm bg-white shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="English">English</option>
+            <option value="Arabic">Arabic</option>
+            <option value="Luganda">Luganda</option>
+            <option value="Swahili">Swahili</option>
+          </select>
+
+          <button
+            onClick={() => window.print()}
+            className="button bg-blue-600 text-white px-4 py-2 rounded text-sm shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            Print
+          </button>
+
+          <button
+            onClick={exportToPDF}
+            className="button bg-green-600 text-white px-4 py-2 rounded text-sm shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+          >
+            Export PDF
+          </button>
+
+          <button
+            onClick={exportToExcel}
+            className="button bg-teal-600 text-white px-4 py-2 rounded text-sm shadow-sm hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500"
+          >
+            Export Excel
+          </button>
+
+          <button
+            onClick={() => setShowCustomization(true)}
+            className="button bg-gray-700 text-white px-4 py-2 rounded text-sm shadow-sm hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500"
+          >
+            Customize Style
+          </button>
         </div>
         {loading && <div className="no-print">Loading..</div>}
         <div>
@@ -1306,7 +1360,6 @@ const styles = {
   studentInfoContainer: {
     display: 'flex',
     flexDirection: 'row',
-    gap: '2rem',
     marginBottom: 0,
     paddingBottom: 0,
     borderBottom: '2px dashed #000',
@@ -1578,3 +1631,110 @@ function GradeTable() {
     </div>
   );
 }
+
+// Updated toolbar with improved styling and language selector
+<div className="toolbar-container">
+  <div className="toolbar flex flex-wrap items-center gap-4 p-4 bg-gray-100 border-b border-gray-300 no-print">
+    <select
+      value={filters?.term}
+      onChange={(e) => setFilters?.((f: Filters) => ({ ...f, term: e.target.value }))}
+      className="dropdown border rounded px-3 py-2 text-sm bg-white shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+    >
+      <option value="">All Terms</option>
+      <option value="Term 1">Term 1</option>
+      <option value="Term 2">Term 2</option>
+      <option value="Term 3">Term 3</option>
+    </select>
+
+    <select
+      value={filters?.resultType}
+      onChange={(e) => setFilters?.((f: Filters) => ({ ...f, resultType: e.target.value }))}
+      className="dropdown border rounded px-3 py-2 text-sm bg-white shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+    >
+      <option value="">All Result Types</option>
+      {[...new Set(allResults?.map((r: Result) => r.result_type_name || r.results_type))]
+        .filter(Boolean)
+        .map((rt) => (
+          <option key={String(rt)} value={String(rt)}>
+            {String(rt)}
+          </option>
+        ))}
+    </select>
+
+    <select
+      value={filters?.classId}
+      onChange={(e) => setFilters?.((f: Filters) => ({ ...f, classId: e.target.value }))}
+      className="dropdown border rounded px-3 py-2 text-sm bg-white shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+    >
+      <option value="">All Classes</option>
+      {[...new Set(
+        allStudents?.length
+          ? allStudents.map((s: Student) => s.class_name || s.class_id || '')
+          : allResults?.map((r: Result) => r.class_name || '')
+      )]
+        .filter(Boolean)
+        .map((cid) => {
+          const label = allStudents?.length
+            ? allStudents.find((s: Student) => (s.class_name || s.class_id) === cid)?.class_name || cid
+            : cid;
+          return (
+            <option key={String(cid)} value={String(cid)}>
+              {String(label)}
+            </option>
+          );
+        })}
+    </select>
+
+    <input
+      value={filters?.student}
+      onChange={(e) => setFilters?.((f: Filters) => ({ ...f, student: e.target.value }))}
+      placeholder="Type student name or ID"
+      className="input border rounded px-3 py-2 text-sm bg-white shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+    />
+
+    <select
+      className="dropdown border rounded px-3 py-2 text-sm bg-white shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+    >
+      <option value="English">English</option>
+      <option value="Arabic">Arabic</option>
+      <option value="Luganda">Luganda</option>
+      <option value="Swahili">Swahili</option>
+    </select>
+
+    <button
+      onClick={() => window.print()}
+      className="button bg-blue-600 text-white px-4 py-2 rounded text-sm shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    >
+      Print
+    </button>
+
+    <button
+      onClick={exportToPDF}
+      className="button bg-green-600 text-white px-4 py-2 rounded text-sm shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+    >
+      Export PDF
+    </button>
+
+    <button
+      onClick={exportToExcel}
+      className="button bg-teal-600 text-white px-4 py-2 rounded text-sm shadow-sm hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500"
+    >
+      Export Excel
+    </button>
+
+    <button
+      onClick={() => setShowCustomization?.(true)}
+      className="button bg-gray-700 text-white px-4 py-2 rounded text-sm shadow-sm hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-500"
+    >
+      Customize Style
+    </button>
+  </div>
+
+  <style jsx>{`
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+    }
+  `}</style>
+</div>
