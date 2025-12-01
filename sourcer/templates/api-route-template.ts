@@ -1,4 +1,4 @@
-// Template for creating new API routes in DRAIS
+// Template for creating new API routes in Excel Islamic School Management System
 // Always add this line first for routes that use Node.js modules
 export const runtime = "nodejs";
 

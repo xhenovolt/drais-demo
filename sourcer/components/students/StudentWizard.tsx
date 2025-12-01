@@ -320,30 +320,32 @@ export const StudentWizard:React.FC<{open:boolean; onClose:()=>void; onCreated?:
       const pageHeight = doc.internal.pageSize.getHeight();
 
       // School Header
-      doc.setFontSize(20);
+      doc.setFontSize(18);
       doc.setFont('helvetica', 'bold');
-      doc.text('IBUN BAZ GIRLS SECONDARY SCHOOL', pageWidth / 2, 25, { align: 'center' });
+      doc.text('EXCEL ISLAMIC NURSERY & PRIMARY SCHOOL', pageWidth / 2, 25, { align: 'center' });
       
       doc.setFontSize(12);
       doc.setFont('helvetica', 'normal');
-      doc.text('Excellence in Islamic and Academic Education', pageWidth / 2, 32, { align: 'center' });
-      doc.text('P.O. Box 1234, BUSEI, IGANGA, UGANDA | Tel: +256 702 387 803 | Email: info@ibunbazschool.ac.ug', pageWidth / 2, 38, { align: 'center' });
+      doc.text('BUSEMBATIA, BUGWERI', pageWidth / 2, 32, { align: 'center' });
+      doc.text('Tel: 0706 074 179 / 0785 680 091 / 0701 962 984', pageWidth / 2, 38, { align: 'center' });
+      doc.text('P.O. BOX 144, BUSEMBATIA', pageWidth / 2, 44, { align: 'center' });
 
       // Decorative line
       doc.setLineWidth(0.5);
-      doc.line(20, 45, pageWidth - 20, 45);
+      doc.line(20, 52, pageWidth - 20, 52);
 
       // Document Title
       doc.setFontSize(16);
       doc.setFont('helvetica', 'bold');
-      doc.text('OFFICIAL ADMISSION LETTER', pageWidth / 2, 60, { align: 'center' });
+      doc.text('OFFICIAL ADMISSION LETTER', pageWidth / 2, 65, { align: 'center' });
 
       // Date and Reference
       const currentDate = new Date().toLocaleDateString('en-GB');
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
       doc.text(`Date: ${currentDate}`, 20, 75);
-      doc.text(`Ref: IBUN/ADM/${studentData.admission_no || 'TBD'}/2025`, 20, 80);
+      const admissionNum = studentData.admission_no ? studentData.admission_no.toString().split('/').pop() || '001' : '001';
+      doc.text(`Ref: EIS/${admissionNum}/${new Date().getFullYear()}`, 20, 80);
 
       // Admission Details Section
       let yPosition = 95;
@@ -503,7 +505,7 @@ export const StudentWizard:React.FC<{open:boolean; onClose:()=>void; onCreated?:
       // Footer
       doc.setFontSize(8);
       doc.setFont('helvetica', 'italic');
-      doc.text('This is an official document from IBUN BAZ GIRLS SECONDARY SCHOOL. Please keep this letter for your records.', pageWidth / 2, pageHeight - 15, { align: 'center' });
+      doc.text('This is an official document from EXCEL ISLAMIC NURSERY & PRIMARY SCHOOL. Please keep this letter for your records.', pageWidth / 2, pageHeight - 15, { align: 'center' });
 
       // Generate and download
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
@@ -625,7 +627,7 @@ export const StudentWizard:React.FC<{open:boolean; onClose:()=>void; onCreated?:
           title: 'Student Admitted Successfully!',
           html: `
             <div class="text-center">
-              <p><strong>${responseData?.admission_no || 'Student'}</strong> has been admitted to IBUN BAZ GIRLS SECONDARY SCHOOL.</p>
+              <p><strong>${responseData?.admission_no || 'Student'}</strong> has been admitted to EXCEL ISLAMIC NURSERY & PRIMARY SCHOOL.</p>
               <p class="mt-2 text-sm text-gray-600">The admission form has been automatically downloaded to your device.</p>
               <div class="mt-3 p-3 bg-green-50 rounded-lg">
                 <div class="flex items-center justify-center gap-2">

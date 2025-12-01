@@ -78,7 +78,7 @@ export const useFingerprint = () => {
       const publicKeyCredentialCreationOptions: PublicKeyCredentialCreationOptions = {
         challenge: new TextEncoder().encode(challenge),
         rp: {
-          name: "DRAIS School Management",
+          name: "Excel Islamic School Management",
           id: window.location.hostname,
         },
         user: {

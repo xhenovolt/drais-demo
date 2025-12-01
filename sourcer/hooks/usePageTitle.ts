@@ -45,12 +45,12 @@ export function usePageTitle(customTitle?: string) {
   const pathname = usePathname();
   
   useEffect(() => {
-    let title = 'DRAIS';
+    let title = 'Excel Islamic School';
     
     if (customTitle) {
-      title = `${customTitle} - DRAIS`;
+      title = `${customTitle} - Excel Islamic School`;
     } else if (routeTitles[pathname]) {
-      title = `${routeTitles[pathname]} - DRAIS`;
+      title = `${routeTitles[pathname]} - Excel Islamic School`;
     } else {
       // Fallback: convert pathname to title
       const segments = pathname.split('/').filter(Boolean);
@@ -59,7 +59,7 @@ export function usePageTitle(customTitle?: string) {
           .split('-')
           .map(word => word.charAt(0).toUpperCase() + word.slice(1))
           .join(' ');
-        title = `${pageTitle} - DRAIS`;
+        title = `${pageTitle} - Excel Islamic School`;
       }
     }
     
