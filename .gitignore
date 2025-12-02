@@ -41,3 +41,22 @@ yarn-error.log*
 next-env.d.ts
 
 .vercel
+
+# Large files protection (prevent GitHub 100MB limit issues)
+*.zip
+*.tar.gz
+*.rar
+*.7z
+node_modules.zip
+*.sql
+!database/migrations/*.sql
+!database/schema.sql
+
+# Large media files
+*.mp4
+*.avi
+*.mov
+
+# User uploads (can be large)
+public/uploads/
+uploads/
